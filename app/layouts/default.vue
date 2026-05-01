@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const chatOpen = useChatSlideover()
+</script>
+
 <template>
   <div class="min-h-screen flex flex-col">
     <a
@@ -11,5 +15,6 @@
       <slot />
     </main>
     <AppFooter />
+    <LazyChatSlideover v-if="chatOpen" />
   </div>
 </template>
