@@ -4,6 +4,11 @@ import { expect, test } from './test-utils'
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 const SEVERE_IMPACTS = ['serious', 'critical'] as const
+type SevereImpact = typeof SEVERE_IMPACTS[number]
+
+function isSevereImpact(impact: unknown): impact is SevereImpact {
+  return impact === 'serious' || impact === 'critical'
+}
 
 const askButton = (page: import('@playwright/test').Page) =>
   page.getByRole('button', { name: /ask my blog/i })
@@ -66,7 +71,7 @@ test.describe('chat slideover: a11y', () => {
       .exclude('.prose')
       .analyze()
 
-    const severe = violations.filter(v => SEVERE_IMPACTS.includes(v.impact as typeof SEVERE_IMPACTS[number]))
+    const severe = violations.filter(v => isSevereImpact(v.impact))
     expect(
       severe,
       severe.map(v => `${v.id} (${v.impact}): ${v.help} — ${v.helpUrl}`).join('\n')

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const { pubDatetime, tags, author } = defineProps<{
   pubDatetime: string | Date
   tags?: string[]
   author?: string

@@ -2,8 +2,25 @@
 import type { UIMessage } from 'ai'
 import { isTextUIPart, isToolUIPart, getToolName } from 'ai'
 import { isToolStreaming } from '@nuxt/ui/utils/ai'
+import type { ShowPostSuccess } from '~~/server/utils/tools/show-post'
 
-defineProps<{ message: UIMessage }>()
+const { message } = defineProps<{ message: UIMessage }>()
+
+type ToolPart = Extract<UIMessage['parts'][number], { type: `tool-${string}` } | { type: 'dynamic-tool' }>
+
+function isShowPostSuccess(value: unknown): value is ShowPostSuccess {
+  return typeof value === 'object' && value !== null && 'title' in value && 'slug' in value
+}
+
+function showPostResult(part: ToolPart): ShowPostSuccess | null {
+  if (part.state !== 'output-available') return null
+  return isShowPostSuccess(part.output) ? part.output : null
+}
+
+function showPostText(part: ToolPart): string {
+  if (isToolStreaming(part)) return 'Finding post…'
+  return showPostResult(part) ? 'Found post' : 'Post not found'
+}
 </script>
 
 <template>
@@ -14,6 +31,17 @@ defineProps<{ message: UIMessage }>()
     >
       {{ part.text }}
     </p>
+    <template v-else-if="isToolUIPart(part) && getToolName(part) === 'show_post'">
+      <UChatTool
+        icon="i-lucide-file-text"
+        :streaming="isToolStreaming(part)"
+        :text="showPostText(part)"
+      />
+      <ToolsPostCard
+        v-if="showPostResult(part)"
+        v-bind="showPostResult(part)!"
+      />
+    </template>
     <UChatTool
       v-else-if="isToolUIPart(part)"
       :icon="getToolName(part).startsWith('list_') ? 'i-lucide-list' : 'i-lucide-file-text'"
