@@ -69,3 +69,26 @@ jobs:
           name: playwright-report
           path: playwright-report
           retention-days: 7
+
+  eval:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Start server
+        run: node .output/server/index.mjs &
+        env:
+          NUXT_CRON_SECRET: ci-not-used
+      - name: Wait for /mcp
+        run: npx --yes wait-on http://localhost:3000/mcp -t 60000
+      - run: pnpm eval:run
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MCP_URL: http://localhost:3000/mcp
