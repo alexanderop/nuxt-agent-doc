@@ -1,10 +1,12 @@
 import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core'
 import type { UIMessage } from 'ai'
+import type { AgentMode } from '~~/shared/agent'
 
 export const agentChats = sqliteTable('agent_chats', {
   id: text('id').primaryKey(),
   messages: text('messages', { mode: 'json' }).notNull().$type<UIMessage[]>(),
   fingerprint: text('fingerprint').notNull(),
+  mode: text('mode').notNull().default('classical').$type<AgentMode>(),
   inputTokens: integer('input_tokens').notNull().default(0),
   outputTokens: integer('output_tokens').notNull().default(0),
   estimatedCost: real('estimated_cost').notNull().default(0),

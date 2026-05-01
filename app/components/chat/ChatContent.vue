@@ -42,6 +42,10 @@ function showPostText(part: ToolPart): string {
         v-bind="showPostResult(part)!"
       />
     </template>
+    <ChatCodeBlock
+      v-else-if="isToolUIPart(part) && getToolName(part) === 'code'"
+      :part="part"
+    />
     <UChatTool
       v-else-if="isToolUIPart(part)"
       :icon="getToolName(part).startsWith('list_') ? 'i-lucide-list' : 'i-lucide-file-text'"
