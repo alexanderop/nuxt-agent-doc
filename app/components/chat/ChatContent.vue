@@ -21,6 +21,17 @@ function showPostText(part: ToolPart): string {
   if (isToolStreaming(part)) return 'Finding post…'
   return showPostResult(part) ? 'Found post' : 'Post not found'
 }
+
+function codeInputLength(part: ToolPart): number {
+  if (!('input' in part) || typeof part.input !== 'object' || part.input === null) return 0
+  if (!('code' in part.input)) return 0
+  const code: unknown = part.input.code
+  return typeof code === 'string' ? code.length : 0
+}
+
+function codeBlockKey(part: ToolPart, index: number): string {
+  return `${message.id}-${index}-${part.state}-${codeInputLength(part)}`
+}
 </script>
 
 <template>
@@ -44,6 +55,7 @@ function showPostText(part: ToolPart): string {
     </template>
     <ChatCodeBlock
       v-else-if="isToolUIPart(part) && getToolName(part) === 'code'"
+      :key="codeBlockKey(part, i)"
       :part="part"
     />
     <UChatTool

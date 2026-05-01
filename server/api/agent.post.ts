@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
         maxOutputTokens: 2000,
         abortSignal: abort.signal,
         stopWhen: stepCountIs(MAX_STEPS),
-        system: buildSystemPrompt(pagePath),
+        system: buildSystemPrompt(pagePath, mode),
         messages: await convertToModelMessages(validated.data),
         tools: { ...mcpTools, show_post: showPostTool } satisfies ToolSet,
         experimental_telemetry: {
