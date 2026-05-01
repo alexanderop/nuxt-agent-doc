@@ -22,11 +22,14 @@
     "test": "pnpm lint && pnpm test:types"
   },
   "dependencies": {
+    "@ai-sdk/mcp": "^1.0.38",
+    "@ai-sdk/vue": "^3.0.172",
     "@nuxt/a11y": "1.0.0-alpha.1",
     "@nuxt/content": "3.13.0",
     "@nuxt/eslint": "1.15.2",
     "@nuxt/ui": "4.7.1",
     "@nuxtjs/mcp-toolkit": "^0.15.0",
+    "ai": "^6.0.172",
     "better-sqlite3": "^12.9.0",
     "eslint": "^10.2.1",
     "feed": "^5.2.1",
