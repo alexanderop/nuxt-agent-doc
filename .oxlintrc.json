@@ -12,8 +12,8 @@
   ],
   "categories": {
     "correctness": "error",
-    "suspicious": "warn",
-    "perf": "warn",
+    "suspicious": "error",
+    "perf": "error",
     "nursery": "off",
     "pedantic": "off",
     "style": "off",
@@ -21,7 +21,7 @@
   },
   "rules": {
     "no-debugger": "error",
-    "no-console": ["warn", { "allow": ["warn", "error"] }]
+    "no-console": ["error", { "allow": ["warn", "error"] }]
   },
   "ignorePatterns": [".nuxt/**", ".output/**", "node_modules/**", "dist/**"]
 }
