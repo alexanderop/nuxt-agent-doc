@@ -4,6 +4,7 @@ const links = [
   { label: 'Notes', to: '/notes' },
   { label: 'TIL', to: '/til' }
 ]
+const chatOpen = useChatSlideover()
 </script>
 
 <template>
@@ -18,6 +19,15 @@ const links = [
         </UButton>
       </nav>
       <div class="flex items-center gap-2">
+        <UButton
+          icon="i-lucide-sparkles"
+          color="neutral"
+          variant="ghost"
+          aria-label="Ask my blog"
+          @click="chatOpen = true"
+        >
+          Ask my blog
+        </UButton>
         <UColorModeButton />
       </div>
     </UContainer>
