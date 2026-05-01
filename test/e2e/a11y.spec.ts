@@ -16,6 +16,11 @@ const ROUTES = [
 const MODES: readonly ColorMode[] = ['light', 'dark']
 
 const SEVERE_IMPACTS = ['serious', 'critical'] as const
+type SevereImpact = typeof SEVERE_IMPACTS[number]
+
+function isSevereImpact(impact: unknown): impact is SevereImpact {
+  return impact === 'serious' || impact === 'critical'
+}
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
@@ -36,7 +41,7 @@ test.describe('a11y: no serious or critical axe violations', () => {
           for (const selector of EXCLUDE_SELECTORS) builder = builder.exclude(selector)
 
           const { violations } = await builder.analyze()
-          const severe = violations.filter(v => SEVERE_IMPACTS.includes(v.impact as typeof SEVERE_IMPACTS[number]))
+          const severe = violations.filter(v => isSevereImpact(v.impact))
 
           expect(
             severe,

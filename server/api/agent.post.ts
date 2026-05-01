@@ -16,7 +16,7 @@ const MAX_STEPS = 8
 const MODEL = anthropic('claude-sonnet-4-6')
 
 export default defineEventHandler(async (event) => {
-  const raw = await readBody(event) as { messages?: unknown }
+  const raw = await readBody<{ messages?: unknown }>(event)
   const validated = await safeValidateUIMessages({ messages: raw?.messages })
   if (!validated.success) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid messages' })
@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
         stopWhen: stepCountIs(MAX_STEPS),
         system: buildSystemPrompt(pagePath),
         messages: await convertToModelMessages(validated.data),
-        tools: { ...mcpTools, show_post: showPostTool } as ToolSet,
+        tools: { ...mcpTools, show_post: showPostTool } satisfies ToolSet,
         onFinish: closeMcp,
         onAbort: closeMcp,
         onError: closeMcp

@@ -4,14 +4,17 @@ import { isTextUIPart, isToolUIPart, getToolName } from 'ai'
 import { isToolStreaming } from '@nuxt/ui/utils/ai'
 import type { ShowPostSuccess } from '~~/server/utils/tools/show-post'
 
-defineProps<{ message: UIMessage }>()
+const { message } = defineProps<{ message: UIMessage }>()
 
 type ToolPart = Extract<UIMessage['parts'][number], { type: `tool-${string}` } | { type: 'dynamic-tool' }>
 
+function isShowPostSuccess(value: unknown): value is ShowPostSuccess {
+  return typeof value === 'object' && value !== null && 'title' in value && 'slug' in value
+}
+
 function showPostResult(part: ToolPart): ShowPostSuccess | null {
   if (part.state !== 'output-available') return null
-  const output = part.output as ShowPostSuccess | { error: string }
-  return 'error' in output ? null : output
+  return isShowPostSuccess(part.output) ? part.output : null
 }
 
 function showPostText(part: ToolPart): string {

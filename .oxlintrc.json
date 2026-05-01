@@ -21,7 +21,12 @@
   },
   "rules": {
     "no-debugger": "error",
-    "no-console": ["error", { "allow": ["warn", "error"] }]
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "complexity": ["warn", { "max": 10 }],
+    "no-nested-ternary": "error",
+    "typescript/consistent-type-assertions": ["error", { "assertionStyle": "never" }],
+    "typescript/no-explicit-any": "error",
+    "vue/define-props-destructuring": "error"
   },
   "ignorePatterns": [".nuxt/**", ".output/**", "node_modules/**", "dist/**"]
 }

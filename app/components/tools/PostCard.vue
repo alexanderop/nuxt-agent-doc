@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const { title, slug, description, tags, pubDatetime } = defineProps<{
   title: string
   slug: string
   description: string
