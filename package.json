@@ -26,6 +26,7 @@
     "@nuxt/content": "3.13.0",
     "@nuxt/eslint": "1.15.2",
     "@nuxt/ui": "4.7.1",
+    "@nuxtjs/mcp-toolkit": "^0.15.0",
     "better-sqlite3": "^12.9.0",
     "eslint": "^10.2.1",
     "feed": "^5.2.1",
@@ -33,7 +34,8 @@
     "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3",
     "vue": "^3.5.33",
-    "vue-router": "^5.0.6"
+    "vue-router": "^5.0.6",
+    "zod": "^4.4.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

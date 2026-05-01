@@ -15,7 +15,8 @@ export default defineContentConfig({
         draft: z.boolean().default(false),
         ogImage: z.string().optional(),
         seriesTag: z.string().optional(),
-        seriesTitle: z.string().optional()
+        seriesTitle: z.string().optional(),
+        rawbody: z.string()
       })
     }),
     notes: defineCollection({
@@ -42,7 +43,8 @@ export default defineContentConfig({
               page: z.number().optional()
             })
           )
-          .optional()
+          .optional(),
+        rawbody: z.string()
       })
     }),
     til: defineCollection({
@@ -54,7 +56,8 @@ export default defineContentConfig({
         pubDatetime: z.coerce.date(),
         tags: z.array(z.string()).default([]),
         description: z.string().optional(),
-        draft: z.boolean().default(false)
+        draft: z.boolean().default(false),
+        rawbody: z.string()
       })
     })
   }

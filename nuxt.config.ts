@@ -4,7 +4,8 @@ export default defineNuxtConfig({
     '@nuxt/a11y',
     '@nuxt/content',
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@nuxtjs/mcp-toolkit'
   ],
   devtools: { enabled: true },
   app: {
@@ -26,6 +27,16 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: true,
       failOnError: false
+    },
+    experimental: {
+      asyncContext: true
     }
+  },
+  vite: {
+    build: { sourcemap: false }
+  },
+  mcp: {
+    name: 'alexop-blog',
+    version: '0.1.0'
   }
 })
