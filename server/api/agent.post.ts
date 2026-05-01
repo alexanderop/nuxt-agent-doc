@@ -15,12 +15,15 @@ import { useLogger } from 'evlog'
 import { buildSystemPrompt } from '../utils/system-prompt'
 import { showPostTool } from '../utils/tools/show-post'
 import { getAgentFingerprint } from '../utils/agent-fingerprint'
+import { consumeAgentRateLimit } from '../utils/rate-limit'
 import { db, schema } from '../db/client'
 
 const MAX_STEPS = 8
 const MODEL = anthropic('claude-sonnet-4-6')
 
 export default defineEventHandler(async (event) => {
+  await consumeAgentRateLimit(event)
+
   const raw = await readBody<{ id?: unknown, messages?: unknown }>(event)
   const validated = await safeValidateUIMessages({ messages: raw?.messages })
   if (!validated.success) {

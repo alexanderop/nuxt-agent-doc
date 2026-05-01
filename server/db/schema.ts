@@ -13,3 +13,8 @@ export const agentChats = sqliteTable('agent_chats', {
   createdAt: integer({ mode: 'timestamp' }).notNull(),
   updatedAt: integer({ mode: 'timestamp' }).notNull()
 }, t => [index('agent_chats_fingerprint_idx').on(t.fingerprint)])
+
+export const agentDailyUsage = sqliteTable('agent_daily_usage', {
+  dayKey: text('day_key').primaryKey(),
+  count: integer('count').notNull()
+})

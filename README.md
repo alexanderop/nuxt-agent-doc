@@ -73,3 +73,27 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in:
+
+- `ANTHROPIC_API_KEY` — required, Claude API key for the chat agent.
+- `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` — leave unset to use a local `./local.db` (default for development).
+- `NUXT_CRON_SECRET` — Bearer token gating `/api/agent/cleanup`. Set to any random string locally.
+
+## Database
+
+```bash
+pnpm db:generate   # emit a migration after changing server/db/schema.ts
+pnpm db:migrate    # apply migrations
+pnpm db:studio     # open drizzle-kit studio
+```
+
+## Cleanup
+
+`/api/agent/cleanup` deletes chats older than 30 days and rate-limit rows older than 7 days. It is Bearer-gated; run manually against the dev server:
+
+```bash
+pnpm db:cleanup
+```

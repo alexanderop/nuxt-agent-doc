@@ -16,6 +16,9 @@ export default defineNuxtConfig({
     }
   },
   css: ['~/assets/css/main.css'],
+  runtimeConfig: {
+    cronSecret: ''
+  },
   routeRules: {
     '/': { prerender: true },
     '/blog/**': { prerender: true },
