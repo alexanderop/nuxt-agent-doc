@@ -7,6 +7,7 @@ const route = useRoute()
 
 const stored = useSessionStorage<UIMessage[]>('agent-messages', [])
 const useContext = useLocalStorage('agent-use-context', true)
+const chatId = useLocalStorage('agent-chat-id', () => crypto.randomUUID())
 
 const CONTEXT_PREFIXES = ['/blog/', '/notes/', '/til/']
 const currentPage = computed(() =>
@@ -14,6 +15,7 @@ const currentPage = computed(() =>
 )
 
 const chat = new Chat({
+  id: chatId.value,
   messages: stored.value,
   transport: new DefaultChatTransport({
     api: '/api/agent',

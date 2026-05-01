@@ -6,23 +6,35 @@ import {
   safeValidateUIMessages,
   stepCountIs
 } from 'ai'
-import type { ToolSet } from 'ai'
+import type { ToolSet, UIMessage } from 'ai'
 import { experimental_createMCPClient as createMCPClient } from '@ai-sdk/mcp'
 import { anthropic } from '@ai-sdk/anthropic'
+import { sql } from 'drizzle-orm'
+import { createAILogger, createEvlogIntegration } from 'evlog/ai'
+import { useLogger } from 'evlog'
 import { buildSystemPrompt } from '../utils/system-prompt'
 import { showPostTool } from '../utils/tools/show-post'
+import { getAgentFingerprint } from '../utils/agent-fingerprint'
+import { db, schema } from '../db/client'
 
 const MAX_STEPS = 8
 const MODEL = anthropic('claude-sonnet-4-6')
 
 export default defineEventHandler(async (event) => {
-  const raw = await readBody<{ messages?: unknown }>(event)
+  const raw = await readBody<{ id?: unknown, messages?: unknown }>(event)
   const validated = await safeValidateUIMessages({ messages: raw?.messages })
   if (!validated.success) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid messages' })
   }
 
+  const chatId = typeof raw?.id === 'string' ? raw.id : null
   const pagePath = getHeader(event, 'x-page-path')?.trim() ?? null
+
+  const log = useLogger(event)
+  const ai = createAILogger(log, {
+    toolInputs: true,
+    cost: { 'claude-sonnet-4-6': { input: 3, output: 15 } }
+  })
 
   const abort = new AbortController()
   event.node.req.once('close', () => abort.abort())
@@ -37,23 +49,70 @@ export default defineEventHandler(async (event) => {
     await mcp.close()
     throw err
   }
-  const closeMcp = () => event.waitUntil(mcp.close())
+  let mcpClosed = false
+  const closeMcp = () => {
+    if (mcpClosed) return
+    mcpClosed = true
+    event.waitUntil(mcp.close())
+  }
+
+  const saveChat = async (finalizedMessages: UIMessage[]) => {
+    if (!chatId) return
+    const fingerprint = getAgentFingerprint(event)
+    if (!fingerprint) return
+    const now = new Date()
+    const { inputTokens, outputTokens, estimatedCost = 0, totalDurationMs = 0 } = ai.getMetadata()
+
+    await db.insert(schema.agentChats).values({
+      id: chatId,
+      messages: finalizedMessages,
+      fingerprint,
+      inputTokens,
+      outputTokens,
+      estimatedCost,
+      durationMs: totalDurationMs,
+      requestCount: 1,
+      createdAt: now,
+      updatedAt: now
+    }).onConflictDoUpdate({
+      target: schema.agentChats.id,
+      set: {
+        messages: finalizedMessages,
+        updatedAt: now,
+        inputTokens: sql`${schema.agentChats.inputTokens} + ${inputTokens}`,
+        outputTokens: sql`${schema.agentChats.outputTokens} + ${outputTokens}`,
+        estimatedCost: sql`${schema.agentChats.estimatedCost} + ${estimatedCost}`,
+        durationMs: sql`${schema.agentChats.durationMs} + ${totalDurationMs}`,
+        requestCount: sql`${schema.agentChats.requestCount} + 1`
+      },
+      where: sql`${schema.agentChats.fingerprint} = ${fingerprint}`
+    })
+  }
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const result = streamText({
-        model: MODEL,
+        model: ai.wrap(MODEL),
         maxOutputTokens: 2000,
         abortSignal: abort.signal,
         stopWhen: stepCountIs(MAX_STEPS),
         system: buildSystemPrompt(pagePath),
         messages: await convertToModelMessages(validated.data),
         tools: { ...mcpTools, show_post: showPostTool } satisfies ToolSet,
+        experimental_telemetry: {
+          isEnabled: true,
+          integrations: [createEvlogIntegration(ai)]
+        },
         onFinish: closeMcp,
         onAbort: closeMcp,
         onError: closeMcp
       })
-      writer.merge(result.toUIMessageStream({ originalMessages: validated.data }))
+      writer.merge(result.toUIMessageStream({
+        originalMessages: validated.data,
+        onFinish: ({ messages: finalizedMessages }) => {
+          event.waitUntil(saveChat(finalizedMessages))
+        }
+      }))
     }
   })
   return createUIMessageStreamResponse({ stream })
