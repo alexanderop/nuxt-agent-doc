@@ -12,6 +12,8 @@ When you catch yourself writing the same instruction a second time:
 
 **Corollary:** Don't paper over symptoms. If the fix is structural, ONLY use the structural fix. The instruction IS the symptom.
 
+**Corollary — lint severity:** A rule worth enabling is worth blocking on. Default new lint rules to `error`, not `warn`. Warnings rot: they accumulate, get ignored, and trick humans into thinking the rule is enforced when it isn't. If a rule shouldn't block, turn it off — don't keep it as ambient noise.
+
 **Feedback Loop:**
 - **Capture every correction:** When the human intervenes or tests fail, decide if it's a one-off or a pattern
 - **Route to the right layer:** One-off -> brain note. Recurring fix -> skill or lint rule. Systemic issue -> principle

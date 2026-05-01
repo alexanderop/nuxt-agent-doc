@@ -48,6 +48,14 @@ Format: `[[section/file-name]]`. Resolution order: same directory, then relative
 - Plain markdown with `# Title`. No Obsidian frontmatter.
 - Keep notes under ~50 lines. Split if longer.
 
+## Grounding
+
+Brain content must reflect the user's own thinking, not training-data conventions. When authoring or revising a principle, gotcha, or style note:
+
+- Cite the user's own writing where it exists. Canonical sources: `https://alexop.dev/llms.txt` (index of posts) and the user's blog posts on `alexop.dev`.
+- Quote conversation evidence (`"<user's words>"`) when the lesson came from a correction or stated preference.
+- Do not paraphrase generic Vue/Nuxt/TypeScript advice as if it were the user's view. If the only source is training data, the note doesn't belong in `brain/`.
+
 ## After Writing
 
 Update `brain/index.md` for any files you added or removed. Also update the relevant entrypoint when applicable. Keep indexes link-only and scannable.

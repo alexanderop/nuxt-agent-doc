@@ -23,6 +23,7 @@
 ## Verification
 - [[principles/prove-it-works]]
 - [[principles/verify-in-the-browser]]
+- [[principles/trust-real-code-over-spec]]
 - [[principles/fix-root-causes]]
 
 ## Delegation

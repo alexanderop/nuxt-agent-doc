@@ -15,4 +15,6 @@ After completing any UI or feature work, drive the running local setup with the 
 - If the change has no UI surface (pure types, internal refactor, build config), say so explicitly and skip
 - If the local setup cannot run (missing secrets, broken deps, no browser available), state that the verification was not possible — do not silently substitute "the tests pass" for browser proof
 
+**A11y corollary:** Automated a11y checks (axe-core, Playwright a11y) catch contrast, ARIA, and label bugs visual review misses. When axe flags a violation, fix the component — don't soften the test. Treating violations as design bugs converts the linter into a design gate; suppressing them turns it into theater.
+
 This is the UI-specific instance of [[prove-it-works]]: check the real thing, not a proxy.

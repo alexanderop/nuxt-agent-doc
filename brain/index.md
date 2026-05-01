@@ -22,4 +22,5 @@
 - [[principles/serialize-shared-state-mutations]]
 - [[principles/subtract-before-you-add]]
 - [[principles/test-behavior-not-implementation]]
+- [[principles/trust-real-code-over-spec]]
 
