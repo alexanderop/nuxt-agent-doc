@@ -20,6 +20,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "eval": "evalite",
+    "eval:run": "evalite run --threshold 80",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
@@ -60,6 +61,8 @@
     "@playwright/test": "^1.59.1",
     "drizzle-kit": "^0.31.10",
     "eslint-plugin-oxlint": "^1.62.0",
+    "evalite": "^1.0.0-beta.16",
+    "vitest": "^4.1.5",
     "lefthook": "^1.13.6",
     "oxlint": "^1.62.0",
     "vue-tsc": "^2.2.12"

@@ -97,3 +97,15 @@ pnpm db:studio     # open drizzle-kit studio
 ```bash
 pnpm db:cleanup
 ```
+
+## Evals
+
+`test/mcp.eval.ts` runs an [evalite](https://v1.evalite.dev) suite that grades whether a smaller model (Claude Haiku) routes natural-language questions to the correct MCP tool. It catches silent regressions in tool descriptions or schemas before they reach production.
+
+```bash
+pnpm dev               # one terminal — must be running so /mcp is reachable
+pnpm eval              # other terminal — opens the evalite UI in watch mode
+pnpm eval:run          # one-shot, exits 1 below an 80% average score
+```
+
+The CI `eval` job builds the production bundle, boots `.output/server`, and runs `pnpm eval:run`. It is gated as `continue-on-error` for now — scores show up as a signal without blocking PRs.
