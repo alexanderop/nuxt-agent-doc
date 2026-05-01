@@ -1,0 +1,25 @@
+# Brain
+
+## Principles
+- [[principles]]
+- [[principles/boundary-discipline]]
+- [[principles/composables-are-the-unit-of-logic]]
+- [[principles/cost-aware-delegation]]
+- [[principles/encode-lessons-in-structure]]
+- [[principles/exhaust-the-design-space]]
+- [[principles/experience-first]]
+- [[principles/fix-root-causes]]
+- [[principles/foundational-thinking]]
+- [[principles/guard-the-context-window]]
+- [[principles/layer-the-monolith]]
+- [[principles/make-illegal-states-unrepresentable]]
+- [[principles/make-operations-idempotent]]
+- [[principles/migrate-callers-then-delete-legacy-apis]]
+- [[principles/never-block-on-the-human]]
+- [[principles/outcome-oriented-execution]]
+- [[principles/prove-it-works]]
+- [[principles/redesign-from-first-principles]]
+- [[principles/serialize-shared-state-mutations]]
+- [[principles/subtract-before-you-add]]
+- [[principles/test-behavior-not-implementation]]
+
