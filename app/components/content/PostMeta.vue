@@ -21,7 +21,7 @@ defineProps<{
         :key="t"
         :to="`/tags/${t}`"
       >
-        <UBadge variant="soft" size="sm">
+        <UBadge color="neutral" variant="soft" size="sm">
           {{ t }}
         </UBadge>
       </NuxtLink>

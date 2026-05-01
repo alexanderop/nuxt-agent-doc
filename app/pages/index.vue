@@ -26,7 +26,7 @@ useHead({ title: 'Alexander Opalic — alexop.dev' })
         <PostListItem :post="p" />
       </li>
     </ul>
-    <UButton to="/blog" variant="ghost" trailing-icon="i-lucide-arrow-right" class="mt-6">
+    <UButton to="/blog" color="neutral" variant="ghost" trailing-icon="i-lucide-arrow-right" class="mt-6">
       All posts
     </UButton>
   </UContainer>

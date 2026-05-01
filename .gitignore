@@ -16,6 +16,11 @@ logs
 # Lint cache
 .eslintcache
 
+# Playwright
+test-results
+playwright-report
+playwright/.cache
+
 # Local SQLite (libSQL)
 local.db*
 

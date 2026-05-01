@@ -36,7 +36,7 @@ const sourceTypeLabel: Record<string, string> = {
               {{ '★'.repeat(n.rating) }}<span class="text-muted">{{ '☆'.repeat(5 - n.rating) }}</span>
             </span>
           </div>
-          <div class="text-lg font-medium group-hover:text-primary transition">
+          <div class="text-lg font-medium group-hover:underline">
             {{ n.title }}
           </div>
           <p class="text-sm text-muted">
