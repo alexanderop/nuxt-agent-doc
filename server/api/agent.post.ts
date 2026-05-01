@@ -10,6 +10,7 @@ import type { ToolSet } from 'ai'
 import { experimental_createMCPClient as createMCPClient } from '@ai-sdk/mcp'
 import { anthropic } from '@ai-sdk/anthropic'
 import { buildSystemPrompt } from '../utils/system-prompt'
+import { showPostTool } from '../utils/tools/show-post'
 
 const MAX_STEPS = 8
 const MODEL = anthropic('claude-sonnet-4-6')
@@ -47,7 +48,7 @@ export default defineEventHandler(async (event) => {
         stopWhen: stepCountIs(MAX_STEPS),
         system: buildSystemPrompt(pagePath),
         messages: await convertToModelMessages(validated.data),
-        tools: mcpTools as ToolSet,
+        tools: { ...mcpTools, show_post: showPostTool } as ToolSet,
         onFinish: closeMcp,
         onAbort: closeMcp,
         onError: closeMcp
