@@ -1,0 +1,13 @@
+pre-commit:
+  parallel: true
+  commands:
+    oxlint:
+      glob: "*.{ts,tsx,vue,js,mjs}"
+      run: pnpm oxlint {staged_files}
+    typecheck:
+      run: pnpm typecheck
+
+pre-push:
+  commands:
+    eslint:
+      run: pnpm lint

@@ -2,12 +2,22 @@
   "name": "nuxt-agent-doc",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint . --cache",
+    "lint:fast": "oxlint",
+    "typecheck": "nuxt typecheck",
+    "test:types": "vue-tsc -b --noEmit",
+    "eval": "evalite",
+    "test": "pnpm lint && pnpm test:types"
   },
   "dependencies": {
     "@nuxt/a11y": "1.0.0-alpha.1",
@@ -21,5 +31,23 @@
     "typescript": "^5.9.3",
     "vue": "^3.5.33",
     "vue-router": "^5.0.6"
+  },
+  "devDependencies": {
+    "@nuxt/eslint-config": "^1.15.2",
+    "lefthook": "^1.13.6",
+    "oxlint": "^1.62.0",
+    "vue-tsc": "^2.2.12"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "better-sqlite3",
+      "esbuild",
+      "lefthook",
+      "oxc-parser",
+      "oxc-resolver",
+      "oxlint",
+      "unrs-resolver"
+    ]
   }
 }
