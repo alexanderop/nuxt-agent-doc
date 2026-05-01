@@ -23,6 +23,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "db:cleanup": "curl -fsS -H \"Authorization: Bearer $NUXT_CRON_SECRET\" http://localhost:3000/api/agent/cleanup",
     "test": "pnpm lint && pnpm test:types"
   },
   "dependencies": {
@@ -44,6 +45,8 @@
     "evlog": "^2.14.1",
     "feed": "^5.2.1",
     "nuxt": "^4.4.4",
+    "secure-exec": "^0.2.1",
+    "shiki": "^4.0.2",
     "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3",
     "vue": "^3.5.33",

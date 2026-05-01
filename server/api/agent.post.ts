@@ -15,19 +15,29 @@ import { useLogger } from 'evlog'
 import { buildSystemPrompt } from '../utils/system-prompt'
 import { showPostTool } from '../utils/tools/show-post'
 import { getAgentFingerprint } from '../utils/agent-fingerprint'
+import { consumeAgentRateLimit } from '../utils/rate-limit'
 import { db, schema } from '../db/client'
+import { isAgentMode, type AgentMode } from '~~/shared/agent'
 
 const MAX_STEPS = 8
 const MODEL = anthropic('claude-sonnet-4-6')
 
+const MCP_PATH: Record<AgentMode, string> = {
+  classical: '/mcp',
+  code: '/mcp/code'
+}
+
 export default defineEventHandler(async (event) => {
-  const raw = await readBody<{ id?: unknown, messages?: unknown }>(event)
+  await consumeAgentRateLimit(event)
+
+  const raw = await readBody<{ id?: unknown, messages?: unknown, mode?: unknown }>(event)
   const validated = await safeValidateUIMessages({ messages: raw?.messages })
   if (!validated.success) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid messages' })
   }
 
   const chatId = typeof raw?.id === 'string' ? raw.id : null
+  const mode: AgentMode = isAgentMode(raw?.mode) ? raw.mode : 'classical'
   const pagePath = getHeader(event, 'x-page-path')?.trim() ?? null
 
   const log = useLogger(event)
@@ -40,7 +50,7 @@ export default defineEventHandler(async (event) => {
   event.node.req.once('close', () => abort.abort())
 
   const mcp = await createMCPClient({
-    transport: { type: 'http', url: `${getRequestURL(event).origin}/mcp` }
+    transport: { type: 'http', url: `${getRequestURL(event).origin}${MCP_PATH[mode]}` }
   })
   let mcpTools: Awaited<ReturnType<typeof mcp.tools>>
   try {
@@ -67,6 +77,7 @@ export default defineEventHandler(async (event) => {
       id: chatId,
       messages: finalizedMessages,
       fingerprint,
+      mode,
       inputTokens,
       outputTokens,
       estimatedCost,

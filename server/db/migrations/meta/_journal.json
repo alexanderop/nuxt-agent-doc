@@ -8,6 +8,20 @@
       "when": 1777643623981,
       "tag": "0000_worthless_stature",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1777644585795,
+      "tag": "0001_lyrical_overlord",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777645712022,
+      "tag": "0002_fresh_tyger_tiger",
+      "breakpoints": true
     }
   ]
 }
