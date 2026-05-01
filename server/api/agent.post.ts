@@ -8,10 +8,11 @@ import {
 } from 'ai'
 import type { ToolSet } from 'ai'
 import { experimental_createMCPClient as createMCPClient } from '@ai-sdk/mcp'
+import { anthropic } from '@ai-sdk/anthropic'
 import { buildSystemPrompt } from '../utils/system-prompt'
 
 const MAX_STEPS = 8
-const MODEL = 'anthropic/claude-sonnet-4.6'
+const MODEL = anthropic('claude-sonnet-4-6')
 
 export default defineEventHandler(async (event) => {
   const raw = await readBody(event) as { messages?: unknown }
