@@ -6,7 +6,8 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxtjs/mcp-toolkit',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    'evlog/nuxt'
   ],
   devtools: { enabled: true },
   app: {
@@ -35,6 +36,9 @@ export default defineNuxtConfig({
   },
   vite: {
     build: { sourcemap: false }
+  },
+  evlog: {
+    env: { service: 'nuxt-agent-doc' }
   },
   mcp: {
     name: 'alexop-blog',
