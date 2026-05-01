@@ -1,0 +1,211 @@
+---
+author: Alexander Opalic
+pubDatetime: 2026-03-22T00:00:00Z
+title: "The Software Factory: Why Your Team Will Never Work the Same Again"
+slug: the-software-factory
+description: "We already have everything we need to build software factories. Teams will change. The only variable is speed."
+tags: ["ai", "software-engineering", "teams", "future"]
+draft: false
+---
+
+## Table of Contents
+
+## We Already Have Everything We Need
+
+The current models and tooling are enough to build software factories. Today.
+
+In a software factory, developers stop writing code by hand. AI coding agents implement features and fix bugs while developers design and improve the factory.
+
+Or as Lee Edwards from Root Ventures [put it](https://sfstandard.com/2026/02/19/ai-writes-code-now-s-left-software-engineers/):
+
+> "It's like giving them a nuclear-powered six-axis mill. It's a single-person software factory."
+
+Anthropic ships the building blocks today:
+
+- [Claude Code](https://code.claude.com/docs/en/overview) is an agentic coding tool that lives in your terminal, understands your codebase, and can write code, run tests, and open pull requests
+- [Headless mode](https://code.claude.com/docs/en/headless) lets you run Claude Code programmatically in CI/CD pipelines, GitHub Actions, or any automation script
+- [Scheduled tasks](https://code.claude.com/docs/en/scheduled-tasks) let agents run on a timer: daily code reviews, dependency checks, morning briefings
+- [Subagents](https://code.claude.com/docs/en/sub-agents) are specialized agents you can create for specific tasks, each with their own tools and permissions
+- [Agent teams](https://code.claude.com/docs/en/agent-teams) let you orchestrate multiple Claude Code sessions working in parallel on different parts of a problem
+- [Skills](https://code.claude.com/docs/en/skills) extend what your agents can do with simple Markdown files
+- The [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) lets you build production multi-agent systems with orchestration, guardrails, and tracing
+- [Claude on GitHub](https://github.blog/changelog/2026-02-04-claude-and-codex-are-now-available-in-public-preview-on-github/) lets Claude commit code and comment on PRs directly from GitHub
+
+You delegate a ticket, review the output, and tighten the architecture. These pieces fit together:
+
+[Understanding Claude Code's Full Stack: MCP, Skills, Subagents, and Hooks](/blog/understanding-claude-code-full-stack)
+
+But first, how we used to work.
+
+## How We Worked Before: Beer Commerce
+
+Beer Commerce is a fictional company that sells craft beer online. Mid-size, multiple teams, microservices backend, microfrontend architecture.
+
+One of their teams, the Checkout team, has 12 people:
+
+- 5 developers (2 frontend, 2 backend, 1 full-stack)
+- 1 product owner
+- 1 scrum master
+- 2 QA engineers
+- 1 UX designer
+- 1 business analyst
+- 1 tech lead
+
+They run two-week sprints. Here's what happens when a new feature comes in. Say, "Add a discount code field to the checkout page":
+
+Business request → BA writes user story → PO refines and prioritizes → sprint planning (2-4 hrs) → UX designs mockups (2-3 days) → dev picks up ticket (day 3-4) → dev writes code (2-3 days) → code review (1-2 days) → QA testing (1-2 days) → deployed (day 10-14).
+
+Business request to production: **10 to 14 days**. That's the happy path, with no blocked dependencies and no sick days. Many features eat an entire sprint or spill into the next one.
+
+**Handoffs** are the bottleneck. The BA hands off to the PO. The PO hands off to the dev. The dev hands off to QA. Each handoff adds waiting time and context loss. The coding itself takes maybe 2 to 3 days out of a 14-day cycle.
+
+Most of the industry still works this way.
+
+## Enter the Software Factory
+
+Claude Code runs as a scheduled agent in the cloud. You give it a task and it works on its own: reading the codebase, writing code, running tests, opening PRs. This is a production workflow.
+
+In a software factory, **each team member is a product builder**. The UX designer who gets a customer complaint can write a spec, hand it to an agent, and babysit the implementation. The business analyst who spots a conversion drop can describe the fix, kick off an agent, and watch it ship. If you understand the problem, you can drive the solution.
+
+The workflow:
+
+Business request → builder writes spec (30 min) → agent picks up ticket → agent writes frontend + backend + tests in parallel → agent runs full test suite and lint → builder reviews PR (1-2 hrs) → deployed (same day).
+
+A designer, PM, or domain expert can write that spec. A good spec goes in, working software comes out.
+
+Business request to production: **hours, not weeks**.
+
+The builder writes a good spec, delegates to the agent, and reviews the output.
+
+Steve Yegge built this for real with [Gas Town](https://github.com/steveyegge/gastown). He calls it ["Kubernetes for AI coding agents"](https://cloudnativenow.com/features/gas-town-what-kubernetes-for-ai-coding-agents-actually-looks-like/), and the comparison is architecturally accurate. You talk to the "Mayor" (the factory foreman), and it coordinates 20 to 30 parallel coding agents called "Polecats" that each work on feature branches. A "Refinery" manages the merge queue so parallel work doesn't collide. Git persists everything. If the system crashes, it reads the history and resumes.
+
+Stripe built the same thing at enterprise scale. They call their agents [Minions](https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents): one-shot coding agents that merge over 1,300 pull requests per week. A task starts in a Slack message and ends in a pull request that passes CI, ready for human review, with no interaction in between.
+
+Before the LLM even runs, a deterministic orchestrator prefetches context. It scans threads for links, pulls tickets, and searches code via MCP. Each Minion gets its own isolated devbox. Same machines human engineers use. Spins up in 10 seconds.
+
+They built [Toolshed](https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents-part-2), an internal MCP server with nearly 500 tools. The orchestrator curates a subset per task. The agent starts focused, not drowning.
+
+The architecture uses what Stripe calls **blueprints**: hybrid systems that combine deterministic code nodes (run linters, push changes) with agentic subtasks (implement feature, fix CI failures). This is the factory pattern: you don't give the agent full autonomy and hope for the best. You build a pipeline with guardrails.
+
+Linters run in under a second before the first push. If CI fails, the Minion gets one more attempt to fix it. After that, humans take over. Two CI rounds max, then ship or hand off.
+
+Why did Stripe build this in-house? Hundreds of millions of lines of Ruby, Sorbet types, and proprietary libraries no public model has seen. Generic agents couldn't navigate it. Stripe's insight: "If a tool is good for human engineers, it's good for LLMs." Every investment in developer tooling, documentation, devboxes, and CI directly improved agent performance. The factory runs on the same infrastructure humans use.
+
+Boris Cherny, the creator of Claude Code, [said](https://sfstandard.com/2026/02/19/ai-writes-code-now-s-left-software-engineers/):
+
+> "We're going to start to see the title of software engineer go away. It's just going to be 'builder' or 'product manager.'"
+
+Anthropic [describes the shift](https://claude.com/blog/eight-trends-defining-how-software-gets-built-in-2026) as: "Engineers are shifting from writing code to coordinating agents that write code, focusing their own expertise on architecture, system design, and strategic decisions."
+
+The job:
+
+- Writing clear specs that agents can execute on
+- Reviewing pull requests from agents
+- Improving the architecture so agents can work more effectively
+- Tightening testing and CI/CD pipelines
+- Monitoring the factory's output quality
+
+You spend less time on boilerplate and more on architecture and deciding what to build. I explored this shift in detail here:
+
+[Spec-Driven Development with Claude Code in Action](/blog/spec-driven-development-claude-code-in-action)
+
+## What Are Skills?
+
+A factory is only as good as its tooling. For AI coding agents, that tooling is **skills**.
+
+As Simon Willison [explains](https://simonwillison.net/2025/Oct/16/claude-skills/), a skill is "a Markdown file telling the model how to do something, optionally accompanied by extra documents and pre-written scripts." He predicts "a Cambrian explosion in Skills which will make this year's MCP rush look pedestrian."
+
+Some examples:
+
+- **Cloud debug skill** (the agent can SSH into production, read logs, find the root cause of an incident, and propose a fix)
+- **Database migration skill** (it understands your ORM, generates migrations, and knows how to handle rollbacks)
+- **Design-to-code skill** (it takes a Figma design and translates it into frontend components)
+- **Monitoring skill** (it reads Grafana dashboards, interprets metrics, and creates alerts)
+- **Security audit skill** (it scans for OWASP vulnerabilities and fixes them)
+
+You add skills, and your agents handle more types of work without you. They debug production issues, handle incidents, set up infrastructure.
+
+Building and maintaining these skills is the highest-leverage engineering task. You're programming the factory. I've written about this hands-on:
+
+[How to Speed Up Your Claude Code Experience with Slash Commands](/blog/claude-code-slash-commands-guide)
+
+## The New Team: Everyone Is a Builder
+
+If AI agents handle the implementation, you don't need 12 people on the Checkout team. You need 5, maybe fewer.
+
+Elad Gil [called it](https://anshadameenza.com/blog/technology/ai-small-teams-software-development-revolution/) "the dirty secret of 2024: the actual engineering team size needed for most software products has collapsed by 5-10x." Gergely Orosz from The Pragmatic Engineer [writes](https://newsletter.pragmaticengineer.com/p/the-future-of-software-engineering-with-ai) that "we are already seeing the end of two-pizza teams (6-10 people) thanks to AI." Andres Max [goes further](https://andresmax.com/large-software-teams-ai-age/): "A 5-person team in 2026 can ship what a 50-person team shipped in 2016."
+
+**Fixed roles dissolve.**
+
+Good early-stage startups have no "frontend developers" or "QA engineers." They have builders. The designer writes code. The engineer talks to customers. The PM debugs production.
+
+The software factory brings that to companies of any size. Agents handle the implementation, and people become builders with agents as their execution layer.
+
+Your expertise still matters. Someone who spent ten years doing UX research asks better questions about user flows. Someone with deep backend experience makes better architectural decisions. Expertise becomes a **superpower, not a job boundary**. The UX expert can act on their insights by instructing an agent to build a prototype, instead of writing a ticket and waiting two weeks.
+
+AKF Partners [describe a similar model](https://akfpartners.com/growth-blog/engineering-team-sizes-are-evolving-rapidly-with-agentic-AI-platforms-the-limits-challenges-and-principles-we-must-consider): "A team of 2 or 3 humans, a lead developer, a product manager, and a designer, could leverage AI agents to cover coding, testing, deployment, and analytics."
+
+The data backs this up. According to the [DX Q4 Impact Report](https://getdx.com/blog/ai-assisted-engineering-q4-impact-report-2025/), roughly 60% of non-engineers like managers, designers, and PMs now use AI to contribute code daily.
+
+The gap between "the person who knows what to build" and "the person who can build it" is closing. Your ideas and judgment matter. Your job title doesn't.
+
+## The Self-Improving Factory
+
+The factory can also figure out what to build next.
+
+Your product generates signals: user feedback in support tickets, behavior data from analytics, A/B test results, error logs. Right now, a human reads all of that, synthesizes it, and turns it into tickets. That takes time and drops context.
+
+In a software factory, agents do this on their own:
+
+- An agent monitors user feedback channels, clusters recurring complaints, and creates backlog items with context
+- An agent reads A/B test results, identifies winning variants, and proposes follow-up experiments
+- An agent watches error rates in production, detects patterns, and creates bug tickets before anyone files a report
+- An agent analyzes usage data, spots features that users struggle with, and suggests UX improvements
+
+The product owner no longer curates a static list once a week. Ideas stream in ranked by impact, updated as data arrives.
+
+Tools like [Linear](https://linear.app) are building toward this. They call their model a triad: **humans decide and remain accountable, agents execute within defined scopes, the platform manages interactions and visibility**. Issues can only be *assigned* to humans, but *delegated* to agents. As they [put it](https://linear.app/now/our-approach-to-building-the-agent-interaction-sdk): "An agent cannot be held accountable." The platform becomes the orchestration layer where humans and agents interact.
+
+Combined with their [Cursor integration](https://linear.app/now/how-cursor-integrated-with-linear-for-agents), the picture becomes clear: "Starting an issue used to mean manually creating a feature branch. Now it means assembling the right context so your coding agent can take a first pass." Linear provides the product and customer context, the coding agent provides the codebase expertise, and the human provides judgment. That's the factory's coordination layer.
+
+Because the factory can also implement those ideas, you get a closed loop: **observe, decide, build, ship, observe again**. You use the factory to improve the product, and you read the product's data to improve the factory.
+
+Andrej Karpathy pushes this to its extreme with [autoresearch](https://github.com/karpathy/autoresearch). AI agents run ML experiments overnight on a single GPU. Humans write a `program.md` (a high-level spec) instead of training code, and agents iterate through experiments. Each run takes 5 minutes, producing about 12 experiments per hour, all optimizing toward a single metric. As Karpathy puts it: "Research is now entirely the domain of autonomous swarms of AI agents running across compute cluster megastructures."
+
+The same pattern applies to product development. Replace "training runs" with "feature experiments" and "val_bpb" with "conversion rate." Your factory runs experiments, measures outcomes, and feeds the results back into the next cycle.
+
+Anthropic supports [scheduled tasks](https://code.claude.com/docs/en/scheduled-tasks) that let agents run on a timer. Set up a daily agent that reads your support inbox, one that checks your analytics dashboard, one that reviews your error logs. Your team reviews what they find, prioritizes, and lets the factory execute.
+
+For a deeper look at how agent teams work in practice:
+
+[7 Agent Team Patterns for Claude Code](/blog/7-agent-team-patterns-for-claude-code)
+
+## The Factory Is the Product
+
+In a software factory, the software you ship is one product. **The factory is another.**
+
+Skills you build, pipelines you improve, architectural decisions that make your codebase more agent-friendly: these compound. A team that spends a week improving their testing infrastructure ships future features faster. A team that builds a cloud debugging skill lets an agent resolve future incidents.
+
+Moss calls this [backpressure](https://banay.me/dont-waste-your-backpressure/): the automated feedback that keeps agents on track. Type checkers, linters, test suites, build systems. If an agent misses an import, the build fails and the agent fixes it. You don't spend your time pointing out syntax errors. Without backpressure, you're stuck reviewing trivial mistakes. With it, agents self-correct and you focus on architecture and product decisions. Investing in backpressure is investing in your factory's throughput.
+
+The teams that build the best factories will ship the best products.
+
+## This Is Happening Now
+
+Claude Code runs in the cloud. You can schedule agents and build skills. Early adopters are doing this now.
+
+As Andres Max [put it](https://andresmax.com/large-software-teams-ai-age/): "Engineers who only wrote boilerplate are at risk. Engineers who make good decisions, architect systems, and understand users are more valuable than ever."
+
+Are you going to build a factory, or keep doing two-week sprints while your competitors ship in hours?
+
+[In Five Years, Developers Won't Write Code By Hand](/blog/developers-wont-write-code-by-hand)
+
+## Conclusion
+
+- The tools for building software factories exist **right now**: Claude Code, headless mode, scheduled tasks, skills, agent teams
+- Stripe's Minions prove the model works at scale: 1,300+ PRs merged per week, fully agent-written, human-reviewed
+- 12-person teams running two-week sprints give way to small groups of generalists who all build
+- Skills turn general-purpose agents into specialized factory workers, and that specialization is your competitive edge
+- Self-improving factories use agents to read user feedback, A/B tests, and production data, then populate the backlog without human curation
+- The factory is a product. Investments in tooling, testing, and architecture compound
+- The role of "software engineer" shifts toward "factory builder": less boilerplate, more architecture, judgment, and deciding what to build next
