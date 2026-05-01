@@ -26,6 +26,7 @@
     "@nuxt/ui": "4.7.1",
     "better-sqlite3": "^12.9.0",
     "eslint": "^10.2.1",
+    "feed": "^5.2.1",
     "nuxt": "^4.4.4",
     "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3",
