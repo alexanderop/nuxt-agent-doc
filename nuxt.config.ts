@@ -7,6 +7,7 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxtjs/mcp-toolkit',
     '@vueuse/nuxt',
+    '@comark/nuxt',
     'evlog/nuxt'
   ],
   devtools: { enabled: true },

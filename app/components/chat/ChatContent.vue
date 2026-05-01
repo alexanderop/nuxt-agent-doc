@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UIMessage } from 'ai'
-import { isTextUIPart, isToolUIPart, getToolName } from 'ai'
-import { isToolStreaming } from '@nuxt/ui/utils/ai'
+import { isTextUIPart, isToolUIPart, isReasoningUIPart, getToolName } from 'ai'
+import { isToolStreaming, isPartStreaming } from '@nuxt/ui/utils/ai'
 import type { ShowPostSuccess } from '~~/server/utils/tools/show-post'
 
 const { message } = defineProps<{ message: UIMessage }>()
@@ -36,12 +36,26 @@ function codeBlockKey(part: ToolPart, index: number): string {
 
 <template>
   <template v-for="(part, i) in message.parts" :key="`${message.id}-${i}`">
-    <p
-      v-if="isTextUIPart(part) && part.text.length > 0"
-      class="whitespace-pre-wrap text-sm/6"
+    <UChatReasoning
+      v-if="isReasoningUIPart(part)"
+      :text="part.text"
+      :streaming="isPartStreaming(part)"
+      icon="i-lucide-brain"
     >
-      {{ part.text }}
-    </p>
+      <ChatComark :markdown="part.text" :streaming="isPartStreaming(part)" />
+    </UChatReasoning>
+
+    <template v-else-if="isTextUIPart(part) && part.text.length > 0">
+      <ChatComark
+        v-if="message.role === 'assistant'"
+        :markdown="part.text"
+        :streaming="isPartStreaming(part)"
+      />
+      <p v-else class="whitespace-pre-wrap text-sm/6">
+        {{ part.text }}
+      </p>
+    </template>
+
     <template v-else-if="isToolUIPart(part) && getToolName(part) === 'show_post'">
       <UChatTool
         icon="i-lucide-file-text"
@@ -53,16 +67,16 @@ function codeBlockKey(part: ToolPart, index: number): string {
         v-bind="showPostResult(part)!"
       />
     </template>
+
     <ChatCodeBlock
       v-else-if="isToolUIPart(part) && getToolName(part) === 'code'"
       :key="codeBlockKey(part, i)"
       :part="part"
     />
-    <UChatTool
+
+    <ChatToolGeneric
       v-else-if="isToolUIPart(part)"
-      :icon="getToolName(part).startsWith('list_') ? 'i-lucide-list' : 'i-lucide-file-text'"
-      :streaming="isToolStreaming(part)"
-      :text="getToolName(part)"
+      :part="part"
     />
   </template>
 </template>

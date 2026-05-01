@@ -31,6 +31,7 @@
     "@ai-sdk/anthropic": "^3.0.73",
     "@ai-sdk/mcp": "^1.0.38",
     "@ai-sdk/vue": "^3.0.172",
+    "@comark/nuxt": "^0.3.1",
     "@libsql/client": "^0.17.3",
     "@nuxt/a11y": "1.0.0-alpha.1",
     "@nuxt/content": "3.13.0",
@@ -62,9 +63,9 @@
     "drizzle-kit": "^0.31.10",
     "eslint-plugin-oxlint": "^1.62.0",
     "evalite": "^1.0.0-beta.16",
-    "vitest": "^4.1.5",
     "lefthook": "^1.13.6",
     "oxlint": "^1.62.0",
+    "vitest": "^4.1.5",
     "vue-tsc": "^2.2.12"
   },
   "pnpm": {

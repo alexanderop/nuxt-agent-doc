@@ -4,7 +4,7 @@ import { db, schema } from '../db/client'
 
 type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
-const DAILY_LIMIT = 20
+export const AGENT_DAILY_LIMIT = 20
 
 function todayKey(ip: string): string {
   const date = new Date().toISOString().slice(0, 10)
@@ -27,11 +27,19 @@ export async function consumeAgentRateLimit(event: H3Event): Promise<void> {
       })
     const [row] = await tx.select().from(schema.agentDailyUsage).where(eq(schema.agentDailyUsage.dayKey, key))
     const used = row?.count ?? 0
-    if (used > DAILY_LIMIT) {
+    if (used > AGENT_DAILY_LIMIT) {
       throw createError({
         statusCode: 429,
-        message: `You've reached the daily limit of ${DAILY_LIMIT} messages. Try again tomorrow.`
+        message: `You've reached the daily limit of ${AGENT_DAILY_LIMIT} messages. Try again tomorrow.`
       })
     }
   })
+}
+
+export async function getAgentQuota(event: H3Event): Promise<{ used: number, remaining: number, limit: number }> {
+  const ip = resolveIP(event)
+  const key = todayKey(ip)
+  const [row] = await db.select().from(schema.agentDailyUsage).where(eq(schema.agentDailyUsage.dayKey, key))
+  const used = row?.count ?? 0
+  return { used, remaining: Math.max(0, AGENT_DAILY_LIMIT - used), limit: AGENT_DAILY_LIMIT }
 }
