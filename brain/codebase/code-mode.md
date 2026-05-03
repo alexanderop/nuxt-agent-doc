@@ -1,24 +1,31 @@
 # Code Mode
 
-The agent runs in two modes: `classical` (one-tool-per-call) and `code` (LLM writes a JS body that batches tool calls). `server/api/agent.post.ts` picks the MCP endpoint based on `mode` from the request body.
+The agent runs in two modes: `classical` (one-tool-per-call) and `code` (LLM writes a JS body that batches tool calls). `server/api/agent.post.ts` switches the tool set based on the `mode` field of the request body.
 
-## Endpoints
+## Tool Sets
 
-- `/api/agent` — chat endpoint.
-- `/mcp` — classical MCP endpoint. Tools are auto-discovered from `server/mcp/tools/*.ts`.
-- `/mcp/code` — code-mode MCP endpoint. Defined by `server/mcp/code.ts` with `experimental_codeMode: true` and an explicit `tools: [...]` list.
+Both modes use AI SDK tools defined in-process under `server/utils/tools/`:
 
-There is no shared-tag API. Both endpoints expose the same six tool modules today, but classical gets them via auto-discovery and code-mode lists them explicitly — keep both lists in sync when adding a tool. `show_post` is registered at the AI SDK level in `agent.post.ts` (`tools: { ...mcpTools, show_post: showPostTool }`), so it's available in both modes without going through MCP.
+- `classical`: `{ ...contentTools, show_post: showPostTool }` — six content tools + `show_post`.
+- `code`: `{ code: codeTool, show_post: showPostTool }` — a single `code` tool wraps the six content tools. `show_post` stays a real tool because the model invokes it *after* the `code` step.
 
-## Security Model
+There is no `/mcp` HTTP endpoint and no MCP client. The earlier `@nuxtjs/mcp-toolkit` integration was removed; tools are loaded as in-process `tool()` definitions and the agent endpoint passes them directly to `streamText`.
 
-Code-mode execution lives inside `@nuxtjs/mcp-toolkit`'s `experimental_codeMode: true`, not the Nuxt process. Under the hood the toolkit loads `secure-exec`'s `NodeRuntime` to run the LLM-written JS in an isolated sandbox; tool calls flow back to the host process through a token-secured loopback HTTP server (random port on `127.0.0.1`, `x-rpc-token` header). Network access from the sandbox is restricted to that RPC server. Without that separation a model could `require('fs')` and read `.env`.
+## Sandbox
+
+`server/utils/code-runtime.ts` owns the V8 isolate. Flow:
+
+1. `codeTool.execute({ code })` calls `executeCode(code, contentToolFns)`.
+2. A loopback HTTP RPC server (random port on `127.0.0.1`, token in `x-rpc-token`) is brought up once and reused.
+3. `secure-exec`'s `NodeRuntime` is created once with a `NetworkAdapter` that allowlists ONLY that RPC server. No DNS, no raw HTTP — `require('fs')` and `process.env` are unreachable.
+4. The sandbox script gets a `codemode` proxy that `fetch`es each call back through RPC. The host restores the H3 `useEvent()` context for each call via `AsyncLocalStorage.snapshot()`, so tool handlers can still call `useEvent()` to query Nuxt Content.
+5. The user code's return value is piped back through a magic `__return__` RPC tool. Wall time, tool-call count, and result size are all bounded.
 
 The page-path that flows into the system prompt comes from the `x-page-path` header — it's user-controlled. Validate at the boundary: cap length, reject `..` and `//`, anchor a regex. See [[../principles/boundary-discipline]].
 
 ## Mode-Aware System Prompt
 
-`buildSystemPrompt(pagePath, mode)` appends `CODE_MODE_ADDENDUM` only when `mode === 'code'`. The addendum frames the JS body as a scratchpad for "discovery + fetching in one block". A mode-agnostic base prompt wastes round-trips because the model doesn't know the calling convention.
+`buildSystemPrompt(pagePath, mode)` appends `CODE_MODE_ADDENDUM` only when `mode === 'code'`. The addendum tells the model the `code` tool takes `{ code: "..." }` and frames the JS body as a scratchpad for "discovery + fetching in one block". A mode-agnostic base prompt wastes round-trips because the model doesn't know the calling convention.
 
 ## Streaming Quirks
 

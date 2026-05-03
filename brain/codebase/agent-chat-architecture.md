@@ -12,6 +12,10 @@ The chat feature lives in a single Pinia store: `app/stores/useAgentChat.ts`. On
 
 Components consume only the store's named returns (`messages`, `status`, `send`, `ask`, `stop`, `clear`, `switchMode`, `expandToFullScreen`, `collapseToSidebar`, etc.) — never the underlying `Chat`. Keeping `Chat` private means we can swap the SDK or wrap behavior without churning components.
 
+## Server-side tools
+
+`server/api/agent.post.ts` builds its tool set in-process from `server/utils/tools/` — no MCP HTTP transport, no `/mcp` endpoint. Each tool file exports its Zod schema, raw handler, and the `tool()`-wrapped AI SDK form so code-mode can reuse the handlers via `contentToolFns`. See [[code-mode]].
+
 ## Related
 
 - [[../principles/composables-are-the-unit-of-logic]] — composables/stores own state; components are dumb.

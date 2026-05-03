@@ -4,7 +4,12 @@ Project-specific things that have cost real time. Check here before guessing.
 
 ## Nuxt + Vite 7
 
-**Stack overflow in transforms.** `Maximum call stack size exceeded ... at EnvironmentPluginContainer.transform` is fixed by `experimental.viteEnvironmentApi: true` in `nuxt.config.ts`. Without it Nuxt feeds Vite 7 through a compatibility shim that recurses. Already set — don't remove.
+**Stack overflow in transforms.** `Maximum call stack size exceeded ... at EnvironmentPluginContainer.transform` has two contributing causes — both must be fixed:
+
+1. `experimental.viteEnvironmentApi: true` in `nuxt.config.ts`. Without it Nuxt feeds Vite 7 through a compatibility shim that recurses. Already set — don't remove.
+2. Vitest config must NOT live in a root `vite.config.ts`. Nuxt warns "Using vite.config.ts is not supported together with Nuxt" and even with the flag set, the dual config still recurses on client transforms. Use `vitest.config.ts` instead — Vitest / vite-plus look for it first.
+
+**Lazy-loaded dep discovered late → 404 or `does not provide an export named 'default'`.** When a `Lazy*` component is the *first* importer of a `node_modules` dep, Vite discovers it mid-stream, kicks off a deps re-optimization, and the in-flight chunk URL 404s OR a CJS subdep fails ESM-default interop. Symptoms: "Failed to fetch dynamically imported module" / "SyntaxError: does not provide an export named 'default'", plus the Vite hint "Vite discovered new dependencies at runtime: <pkg> ← <component>". Fix: pre-bundle in `nuxt.config.ts` → `vite.optimizeDeps.include`. Currently includes `'beautiful-mermaid'` and `'elkjs/lib/elk.bundled.js'` (transitive CJS pulled in by `@comark/vue`'s Mermaid component). vite-plus may print a "Unresolvable optimizeDeps.include entries" warning even when the dep IS being bundled — cosmetic false positive; check `node_modules/.cache/vite/deps/` to confirm.
 
 **Nitro payload-cache `ENOTDIR`.** The home page (`/`) gets cached at base path `.nuxt/cache/nuxt/payload` (as a file), then blocks subsequent writes to `payload/<child>`. Fixed by `nitro.devStorage: { 'cache:nuxt:payload': { driver: 'memory' } }` in `nuxt.config.ts` — already in place. If you still see this on a stale checkout, `rm -rf .nuxt/cache` while the dev server is stopped.
 
@@ -20,13 +25,11 @@ Project-specific things that have cost real time. Check here before guessing.
 
 **`rawbody` is real but expensive.** Adding `rawbody: z.string()` to a collection schema auto-populates the raw markdown (frontmatter included — strip it if you render the header separately). MCP list-tools that don't use `rawbody` should `.select(...)` to avoid loading multi-KB bodies per row.
 
-## @nuxtjs/mcp-toolkit
+## Server tools (in-process)
 
-- `handler(input)` takes **one** arg. Get the H3 event via `useEvent()`, not a 2nd handler arg.
-- `inputSchema` is a **raw shape** (`{ tag: z.string() }`), not `z.object({...})`.
-- Handler return values auto-wrap to `{ content: [{ type: 'text', text }] }`. Strings pass through; objects/arrays get JSON-stringified.
-- `useEvent()` inside handlers requires `nitro.experimental.asyncContext: true`.
-- Auto-discovery picks up `server/mcp/tools/*.ts`. No `transports` config key — http is default.
+- `server/utils/tools/*.ts` define AI SDK `tool({ inputSchema: z.object({...}), execute })` directly — no MCP layer.
+- `useEvent()` inside `execute` (e.g. for `queryCollection(event, ...)`) requires `nitro.experimental.asyncContext: true`. Already set.
+- Code-mode runs through `server/utils/code-runtime.ts` (vendored from `@nuxtjs/mcp-toolkit`'s executor), which wraps `secure-exec`'s `NodeRuntime`. The toolkit module itself is gone — we own the sandbox lifecycle.
 
 ## Streaming Markdown
 

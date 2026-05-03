@@ -5,7 +5,6 @@ export default defineNuxtConfig({
     '@nuxt/content',
     '@nuxt/eslint',
     '@nuxt/ui',
-    '@nuxtjs/mcp-toolkit',
     '@pinia/nuxt',
     '@vueuse/nuxt',
     '@comark/nuxt',
@@ -46,13 +45,12 @@ export default defineNuxtConfig({
     }
   },
   vite: {
-    build: { sourcemap: false }
+    build: { sourcemap: false },
+    optimizeDeps: {
+      include: ['beautiful-mermaid', 'elkjs/lib/elk.bundled.js']
+    }
   },
   evlog: {
     env: { service: 'nuxt-agent-doc' }
-  },
-  mcp: {
-    name: 'alexop-blog',
-    version: '0.1.0'
   }
 })

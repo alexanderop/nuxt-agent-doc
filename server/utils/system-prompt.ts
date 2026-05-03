@@ -26,7 +26,7 @@ When the request includes a "Current page" line at the top of this prompt, that'
 
 const CODE_MODE_ADDENDUM = `
 # Code Mode
-You have ONE tool, \`code\`. Its body is your scratchpad — discover, filter, and fetch in a SINGLE call. Do not split list-then-get across multiple \`code\` invocations: chain them in JavaScript using \`.find\`, \`.filter\`, and \`Promise.all\`. Inspect intermediate results inline and only \`return\` once you have everything needed for your final answer.
+You have ONE tool, \`code\`. It accepts a single argument \`{ code: "..." }\` — a JavaScript body executed in a sandbox. The body is your scratchpad — discover, filter, and fetch in a SINGLE call. Do not split list-then-get across multiple \`code\` invocations: chain them in JavaScript using \`.find\`, \`.filter\`, and \`Promise.all\`. Inspect intermediate results inline and only \`return\` once you have everything needed for your final answer.
 
 Example pattern:
 \`\`\`js

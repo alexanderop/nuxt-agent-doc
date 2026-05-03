@@ -55,9 +55,6 @@ const {
       <template v-if="!messages.length">
         <div class="flex-1 flex flex-col items-center justify-center gap-8 p-8">
           <div class="flex w-full max-w-2xl flex-col items-center px-4">
-            <div class="relative h-36 w-full shrink-0 overflow-hidden sm:h-40">
-              <AgentShader variant="hero" />
-            </div>
             <div class="text-center">
               <h1 class="text-2xl sm:text-3xl font-semibold text-highlighted tracking-tight">
                 What can I help you with?

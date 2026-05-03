@@ -7,13 +7,14 @@ import {
   stepCountIs
 } from 'ai'
 import type { ToolSet, UIMessage } from 'ai'
-import { experimental_createMCPClient as createMCPClient } from '@ai-sdk/mcp'
 import { anthropic } from '@ai-sdk/anthropic'
 import { sql } from 'drizzle-orm'
 import { createAILogger, createEvlogIntegration } from 'evlog/ai'
 import { useLogger } from 'evlog'
 import { buildSystemPrompt } from '../utils/system-prompt'
+import { contentTools } from '../utils/tools'
 import { showPostTool } from '../utils/tools/show-post'
+import { codeTool } from '../utils/tools/code'
 import { getAgentFingerprint } from '../utils/agent-fingerprint'
 import { consumeAgentRateLimit } from '../utils/rate-limit'
 import { db, schema } from '../db/client'
@@ -22,10 +23,8 @@ import { isAgentMode, type AgentMode } from '~~/shared/agent'
 const MAX_STEPS = 8
 const MODEL = anthropic('claude-sonnet-4-6')
 
-const MCP_PATH: Record<AgentMode, string> = {
-  classical: '/mcp',
-  code: '/mcp/code'
-}
+const CLASSICAL_TOOLS: ToolSet = { ...contentTools, show_post: showPostTool }
+const CODE_TOOLS: ToolSet = { code: codeTool, show_post: showPostTool }
 
 export default defineEventHandler(async (event) => {
   await consumeAgentRateLimit(event)
@@ -48,23 +47,6 @@ export default defineEventHandler(async (event) => {
 
   const abort = new AbortController()
   event.node.req.once('close', () => abort.abort())
-
-  const mcp = await createMCPClient({
-    transport: { type: 'http', url: `${getRequestURL(event).origin}${MCP_PATH[mode]}` }
-  })
-  let mcpTools: Awaited<ReturnType<typeof mcp.tools>>
-  try {
-    mcpTools = await mcp.tools()
-  } catch (err) {
-    await mcp.close()
-    throw err
-  }
-  let mcpClosed = false
-  const closeMcp = () => {
-    if (mcpClosed) return
-    mcpClosed = true
-    event.waitUntil(mcp.close())
-  }
 
   const saveChat = async (finalizedMessages: UIMessage[]) => {
     if (!chatId) return
@@ -109,14 +91,11 @@ export default defineEventHandler(async (event) => {
         stopWhen: stepCountIs(MAX_STEPS),
         system: buildSystemPrompt(pagePath, mode),
         messages: await convertToModelMessages(validated.data),
-        tools: { ...mcpTools, show_post: showPostTool } satisfies ToolSet,
+        tools: mode === 'code' ? CODE_TOOLS : CLASSICAL_TOOLS,
         experimental_telemetry: {
           isEnabled: true,
           integrations: [createEvlogIntegration(ai)]
-        },
-        onFinish: closeMcp,
-        onAbort: closeMcp,
-        onError: closeMcp
+        }
       })
       writer.merge(result.toUIMessageStream({
         originalMessages: validated.data,

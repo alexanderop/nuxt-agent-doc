@@ -7,10 +7,6 @@ defineEmits<{ ask: [question: string] }>()
 
 <template>
   <div class="flex flex-col px-4 sm:px-4 pb-4">
-    <div class="relative h-48 overflow-hidden rounded-lg mx-1">
-      <AgentShader />
-    </div>
-
     <div class="flex flex-col gap-6 mt-6">
       <UPageLinks
         v-for="category in faqQuestions"

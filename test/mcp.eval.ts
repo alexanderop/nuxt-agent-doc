@@ -1,20 +1,14 @@
-import { experimental_createMCPClient as createMCPClient } from '@ai-sdk/mcp'
 import { anthropic } from '@ai-sdk/anthropic'
 import { generateText } from 'ai'
 import { evalite } from 'evalite'
 import { toolCallAccuracy } from 'evalite/scorers'
+import { contentTools } from '../server/utils/tools'
 
 const model = anthropic('claude-haiku-4-5-20251001')
-const MCP_URL = process.env.MCP_URL ?? 'http://localhost:3000/mcp'
 
 const runRouting = async (input: string) => {
-  const mcp = await createMCPClient({ transport: { type: 'http', url: MCP_URL } })
-  try {
-    const result = await generateText({ model, prompt: input, tools: await mcp.tools() })
-    return result.toolCalls ?? []
-  } finally {
-    await mcp.close()
-  }
+  const result = await generateText({ model, prompt: input, tools: contentTools })
+  return result.toolCalls ?? []
 }
 
 evalite('Blog tools — routing', {

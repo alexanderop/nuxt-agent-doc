@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.73",
-    "@ai-sdk/mcp": "^1.0.38",
     "@ai-sdk/vue": "^3.0.172",
     "@comark/nuxt": "^0.3.1",
     "@libsql/client": "^0.17.3",
@@ -41,7 +40,6 @@
     "@nuxt/content": "3.13.0",
     "@nuxt/eslint": "1.15.2",
     "@nuxt/ui": "4.7.1",
-    "@nuxtjs/mcp-toolkit": "^0.15.0",
     "@pinia/nuxt": "^0.11.3",
     "@vueuse/core": "^14.3.0",
     "@vueuse/nuxt": "^14.3.0",
@@ -56,7 +54,6 @@
     "nuxt": "^4.4.4",
     "pinia": "^3.0.4",
     "secure-exec": "^0.2.1",
-    "shaders": "^2.5.110",
     "shiki": "^4.0.2",
     "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3",
