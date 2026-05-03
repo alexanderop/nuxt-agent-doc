@@ -6,6 +6,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxtjs/mcp-toolkit',
+    '@pinia/nuxt',
     '@vueuse/nuxt',
     '@comark/nuxt',
     'evlog/nuxt'
@@ -28,6 +29,9 @@ export default defineNuxtConfig({
     '/tags/**': { prerender: true },
     '/rss.xml': { prerender: true }
   },
+  experimental: {
+    viteEnvironmentApi: true
+  },
   compatibilityDate: '2026-05-01',
   nitro: {
     prerender: {
@@ -36,6 +40,9 @@ export default defineNuxtConfig({
     },
     experimental: {
       asyncContext: true
+    },
+    devStorage: {
+      'cache:nuxt:payload': { driver: 'memory' }
     }
   },
   vite: {

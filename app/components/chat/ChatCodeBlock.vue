@@ -41,23 +41,23 @@ const output = computed<string>(() => {
   return ''
 })
 
-const html = ref<string>('')
+const highlightedHtml = ref<string>('')
 const showCode = ref(true)
 const showResult = ref(false)
 
 watchEffect(async () => {
   if (!import.meta.client || !code.value || part.state === 'input-streaming') {
-    html.value = ''
+    highlightedHtml.value = ''
     return
   }
   try {
     const { codeToHtml } = await import('shiki')
-    html.value = await codeToHtml(code.value, {
+    highlightedHtml.value = await codeToHtml(code.value, {
       lang: 'typescript',
       theme: colorMode.value === 'dark' ? 'github-dark' : 'github-light'
     })
   } catch {
-    html.value = ''
+    highlightedHtml.value = ''
   }
 })
 </script>
@@ -78,11 +78,13 @@ watchEffect(async () => {
       </button>
     </div>
     <template v-if="showCode && code">
+      <!-- eslint-disable vue/no-v-html -- trusted Shiki output from plain code input -->
       <div
-        v-if="html"
+        v-if="highlightedHtml"
         class="text-xs overflow-x-auto chat-code-block"
-        v-html="html"
+        v-html="highlightedHtml"
       />
+      <!-- eslint-enable vue/no-v-html -->
       <pre v-else class="px-3 py-3 text-xs overflow-x-auto whitespace-pre-wrap">{{ code }}</pre>
     </template>
     <div v-if="output" class="border-t border-default">

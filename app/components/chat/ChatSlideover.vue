@@ -1,79 +1,28 @@
 <script setup lang="ts">
-import { Chat } from '@ai-sdk/vue'
-import { DefaultChatTransport, type UIMessage } from 'ai'
-import { AGENT_METRICS_KEY, type AgentMode } from '~~/shared/agent'
+const store = useAgentChatStore()
+const {
+  isOpen: open,
+  mode,
+  useContext,
+  currentPage,
+  messages,
+  canClear
+} = storeToRefs(store)
+const {
+  ask,
+  clear,
+  switchMode,
+  toggleContext,
+  expandToFullScreen,
+  faqQuestions
+} = store
 
-const open = useChatSlideover()
-const route = useRoute()
-
-const stored = useSessionStorage<UIMessage[]>('agent-messages', [])
-const useContext = useLocalStorage('agent-use-context', true)
-const mode = useLocalStorage<AgentMode>('agent-mode', 'classical')
-const chatId = useLocalStorage('agent-chat-id', () => crypto.randomUUID())
-const fullscreen = useLocalStorage('agent-fullscreen', false)
 const showDetails = ref(false)
 
-const CONTEXT_PREFIXES = ['/blog/', '/notes/', '/til/']
-const currentPage = computed(() =>
-  CONTEXT_PREFIXES.some(p => route.path.startsWith(p)) ? route.path : null
-)
-
-const modeItems: { label: string, value: AgentMode }[] = [
-  { label: 'Classical', value: 'classical' },
-  { label: 'Code Mode', value: 'code' }
+const modeItems = [
+  { label: 'Classical', value: 'classical' as const },
+  { label: 'Code Mode', value: 'code' as const }
 ]
-
-const suggestions = [
-  { icon: 'i-lucide-newspaper', title: 'Latest blog post', description: 'Most recent post', question: 'What is your most recent blog post about?' },
-  { icon: 'i-lucide-flask-conical', title: 'Vue testing', description: 'Find a testing post', question: 'Find Alex\'s post about Vue testing and summarize it.' },
-  { icon: 'i-lucide-sparkles', title: 'AI workflow', description: 'How Alex uses AI', question: 'Find recent posts about how Alex uses AI agents.' },
-  { icon: 'i-lucide-lightbulb', title: 'Latest TIL', description: 'A recent thing learned', question: 'What is the most recent TIL?' },
-  { icon: 'i-lucide-sticky-note', title: 'Pick a note', description: 'Recommend a note', question: 'Recommend one of Alex\'s notes that is worth reading.' },
-  { icon: 'i-lucide-tags', title: 'Posts about Nuxt', description: 'Browse Nuxt content', question: 'List the blog posts tagged with Nuxt.' }
-]
-
-function buildChat() {
-  return new Chat({
-    id: chatId.value,
-    messages: stored.value,
-    transport: new DefaultChatTransport({
-      api: '/api/agent',
-      body: (): Record<string, AgentMode> => ({ mode: mode.value }),
-      headers: (): Record<string, string> =>
-        useContext.value && currentPage.value
-          ? { 'x-page-path': currentPage.value }
-          : {}
-    }),
-    onFinish: () => {
-      stored.value = [...chat.value.messages]
-      refreshNuxtData(AGENT_METRICS_KEY)
-      refreshNuxtData('agent-quota')
-    }
-  })
-}
-
-const chat = shallowRef(buildChat())
-
-watch(mode, () => {
-  chat.value.stop()
-  chatId.value = crypto.randomUUID()
-  stored.value = []
-  chat.value = buildChat()
-})
-
-const input = ref('')
-async function send() {
-  if (!input.value.trim()) return
-  const text = input.value
-  input.value = ''
-  await chat.value.sendMessage({ text })
-}
-async function ask(question: string) {
-  await chat.value.sendMessage({ text: question })
-}
-
-const { data: quota } = useFetch('/api/agent/quota', { key: 'agent-quota', default: () => null, lazy: true })
-const rateLimited = computed(() => (quota.value?.remaining ?? 1) <= 0)
 
 const slideTransition = {
   'enter-active-class': 'transition-all duration-150',
@@ -82,25 +31,34 @@ const slideTransition = {
   'leave-to-class': 'opacity-0 -translate-y-1'
 }
 
-const canClear = computed(() => chat.value.messages.length > 0)
-function clearChat() {
-  chat.value.stop()
-  chatId.value = crypto.randomUUID()
-  stored.value = []
-  chat.value = buildChat()
-}
-
 defineShortcuts({
   tab: {
     handler: () => {
-      if (currentPage.value) useContext.value = !useContext.value
+      if (currentPage.value) toggleContext()
     }
   }
 })
 </script>
 
 <template>
-  <USlideover v-model:open="open" title="Ask my blog" :ui="{ content: fullscreen ? 'sm:max-w-none w-screen' : 'sm:max-w-2xl' }">
+  <USlideover
+    v-model:open="open"
+    :ui="{
+      content: 'sm:max-w-md',
+      header: 'min-h-(--ui-header-height) flex items-center gap-1.5 overflow-hidden border-b border-default px-4',
+      title: 'text-highlighted font-semibold truncate',
+      body: 'p-0'
+    }"
+  >
+    <template #title>
+      <span class="inline-flex items-center gap-2 min-w-0">
+        <span class="truncate">Agent</span>
+        <UBadge variant="subtle" size="sm" class="shrink-0">
+          Beta
+        </UBadge>
+      </span>
+    </template>
+
     <template #actions>
       <UTooltip text="Toggle agent details">
         <UButton
@@ -113,24 +71,37 @@ defineShortcuts({
           @click="showDetails = !showDetails"
         />
       </UTooltip>
-      <UTooltip v-if="canClear" text="New conversation">
+      <UTooltip v-if="canClear" text="Clear chat">
         <UButton
           icon="i-lucide-list-x"
           color="neutral"
           variant="ghost"
           size="sm"
           aria-label="Clear conversation"
-          @click="clearChat"
+          @click="clear"
         />
       </UTooltip>
-      <UTooltip :text="fullscreen ? 'Exit full screen' : 'Full screen'">
+      <UTooltip text="Open full screen">
         <UButton
-          :icon="fullscreen ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'"
+          icon="i-lucide-maximize-2"
           color="neutral"
           variant="ghost"
           size="sm"
-          :aria-label="fullscreen ? 'Exit full screen' : 'Full screen'"
-          @click="fullscreen = !fullscreen"
+          aria-label="Open full screen"
+          @click="expandToFullScreen"
+        />
+      </UTooltip>
+    </template>
+
+    <template #close>
+      <UTooltip text="Close">
+        <UButton
+          icon="i-lucide-panel-right-close"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          aria-label="Close"
+          @click="open = false"
         />
       </UTooltip>
     </template>
@@ -142,11 +113,12 @@ defineShortcuts({
             <div class="flex items-center justify-between gap-3">
               <span class="text-xs font-medium text-muted">Agent mode</span>
               <UTabs
-                v-model="mode"
+                :model-value="mode"
                 :items="modeItems"
                 :content="false"
                 size="xs"
                 variant="pill"
+                @update:model-value="(v) => switchMode(v as typeof mode)"
               />
             </div>
             <p class="text-[11px] text-muted leading-snug">
@@ -168,7 +140,7 @@ defineShortcuts({
           >
             <UIcon name="i-lucide-link" class="size-3.5 text-muted shrink-0" />
             <span class="text-xs text-muted truncate flex-1">
-              Using context: <span class="text-default">{{ currentPage }}</span>
+              Using context: <span class="text-dimmed">alexop.dev</span><span class="text-default">{{ currentPage }}</span>
             </span>
             <UKbd value="Tab" size="sm" />
             <UButton
@@ -177,57 +149,25 @@ defineShortcuts({
               variant="ghost"
               size="xs"
               aria-label="Stop using page context"
-              @click="useContext = false"
+              @click="toggleContext"
             />
           </div>
         </Transition>
 
-        <ChatEmptyState
-          v-if="!chat.messages.length"
-          :suggestions="suggestions"
-          @ask="ask"
-        />
+        <div class="flex-1 overflow-y-auto overscroll-none">
+          <ChatEmptyState
+            v-if="!messages.length"
+            :faq-questions="faqQuestions"
+            @ask="ask"
+          />
 
-        <div v-else class="flex-1 overflow-y-auto overscroll-none">
-          <div class="mx-auto w-full max-w-3xl px-4 sm:px-6">
-            <UChatMessages
-              should-auto-scroll
-              :messages="chat.messages"
-              :status="chat.status"
-              class="pt-4 pb-4"
-            >
-              <template #content="{ message }">
-                <ChatContent :message="message" />
-              </template>
-              <template #actions="{ message }">
-                <ChatMessageActions
-                  v-if="message.role === 'assistant'"
-                  :message="message"
-                />
-              </template>
-            </UChatMessages>
+          <div v-else class="px-4 sm:px-4">
+            <ChatMessages compact class="pt-4 pb-4" />
           </div>
         </div>
 
-        <div class="mx-auto w-full max-w-3xl px-4 sm:px-6">
-          <div v-if="rateLimited" class="border-t border-default px-3 py-3 flex items-center justify-center gap-2 text-xs text-muted">
-            <UIcon name="i-lucide-clock" class="size-3.5 shrink-0" />
-            Daily limit reached. Try again tomorrow.
-          </div>
-          <UChatPrompt
-            v-else
-            v-model="input"
-            placeholder="Ask anything…"
-            variant="subtle"
-            :rows="2"
-            :maxrows="8"
-            autofocus
-            @submit="send"
-          >
-            <template #footer>
-              <ChatPromptFooter :status="chat.status" :quota="quota" />
-            </template>
-          </UChatPrompt>
+        <div class="border-t border-default">
+          <ChatComposer />
         </div>
       </div>
     </template>

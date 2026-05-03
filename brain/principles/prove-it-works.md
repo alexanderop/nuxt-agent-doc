@@ -19,3 +19,5 @@ Code / Features:
 
 Delegation: trust artifacts, not self-reports:
 When verifying delegated work, inspect the actual output artifact (git diff, file contents, runtime behavior) — never the delegate's summary. Agents report what they intended, not always what happened.
+
+For UI surfaces, the concrete protocol is [[verify-in-the-browser]]. The input-side companion is [[trust-real-code-over-spec]] — source knowledge from real implementations, not specs.

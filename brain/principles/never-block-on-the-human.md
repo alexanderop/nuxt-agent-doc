@@ -15,3 +15,4 @@ The human supervises asynchronously. Agents must stay unblocked — make reasona
 - **Irreversible actions** (force-push, delete production data, send external messages) still require confirmation
 - **Reversible actions** (write code, edit notes, split tasks) should proceed without blocking
 - **Product direction** comes from the human; *execution* should not block
+- **Budgets still apply.** Proceeding without asking does not mean spending without limit — see [[cost-aware-delegation]]. Exit smart, not late, when the budget caps before completion.

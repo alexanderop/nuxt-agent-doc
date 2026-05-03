@@ -40,4 +40,4 @@ Switch on `status`; TypeScript narrows the rest. No more `if (data && !isLoading
 - "If I delete this `as`, what breaks?" If the answer is "the types," the types are wrong, not the assertion.
 - "Could a caller forget to handle the failure case?" If yes, switch from throwing to `Result`.
 
-**Boundary discipline corollary:** The boundary is where you parse `unknown` into a strict type. Once parsed, the type is trusted everywhere downstream — no re-validation, no defensive checks, no `as`.
+**Boundary discipline corollary:** See [[boundary-discipline]] — the boundary is where you parse `unknown` into a strict type. Once parsed, the type is trusted everywhere downstream — no re-validation, no defensive checks, no `as`.

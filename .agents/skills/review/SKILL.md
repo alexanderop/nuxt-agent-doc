@@ -1,8 +1,7 @@
 ---
 name: review
 description: >-
-  Principle-grounded review of code changes, PRs, or plans. Use when asked to review, critique,
-  or assess quality of work — "review", "review this", "code review", "check this".
+  Principle-grounded review of code changes, PRs, or plans. Triggers: "review", "critique".
 ---
 
 # Review
@@ -89,8 +88,11 @@ If no plan phase applies, skip this subsection.
 
 For each changed file, check against loaded principles. Common violations:
 - Bolted-on changes instead of redesign (redesign-from-first-principles)
-- Missing verification (prove-it-works)
+- Missing verification (prove-it-works); for UI surfaces specifically, verify-in-the-browser
 - Unnecessarily added complexity (subtract-before-you-add)
+- Validation/error-handling scattered through internal code instead of pinned at the boundary (boundary-discipline)
+- Flag soup or stringly-typed state where a discriminated union or branded type would rule out invalid combinations (make-illegal-states-unrepresentable)
+- Knowledge sourced from spec docs without verifying against a real working reference (trust-real-code-over-spec)
 
 ## Step 6 — Issue Format
 

@@ -11,4 +11,4 @@ When evolving a system, remove complexity first, then build. Deletion creates a 
 - Simplify prompts (remove redundant instructions, excessive templates)
 - When a reference has no novel content, delete it rather than leaving a stub
 
-This is about *when* to act — an ordering principle that says subtraction comes before addition.
+This is about *when* to act — an ordering principle that says subtraction comes before addition. [[foundational-thinking]] absorbs this rule into its sequencing claim ("subtraction before scaffolding"); this note owns the *default-stance* claim that the first move on any task is to ask what can be removed.

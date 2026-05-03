@@ -1,23 +1,23 @@
 <script setup lang="ts">
-type Suggestion = { icon: string, title: string, description: string, question: string }
+import type { FaqCategory } from '~/stores/useAgentChat'
 
-const { suggestions } = defineProps<{ suggestions: Suggestion[] }>()
+const { faqQuestions } = defineProps<{ faqQuestions: FaqCategory[] }>()
 defineEmits<{ ask: [question: string] }>()
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col items-center justify-center gap-8 px-4 sm:px-6 py-8">
-    <div class="text-center max-w-lg">
-      <UIcon name="i-lucide-sparkles" class="size-8 text-primary mb-3" />
-      <h1 class="text-2xl sm:text-3xl font-semibold text-highlighted tracking-tight">
-        Ask my blog
-      </h1>
-      <p class="text-sm text-muted mt-2">
-        Search posts, notes, and TILs — or ask me to summarize anything Alex has written.
-      </p>
+  <div class="flex flex-col px-4 sm:px-4 pb-4">
+    <div class="relative h-48 overflow-hidden rounded-lg mx-1">
+      <AgentShader />
     </div>
-    <div class="w-full max-w-xl">
-      <ChatSuggestions :suggestions="suggestions" @ask="(q: string) => $emit('ask', q)" />
+
+    <div class="flex flex-col gap-6 mt-6">
+      <UPageLinks
+        v-for="category in faqQuestions"
+        :key="category.category"
+        :title="category.category"
+        :links="category.items.map(item => ({ label: item, onClick: () => $emit('ask', item) }))"
+      />
     </div>
   </div>
 </template>

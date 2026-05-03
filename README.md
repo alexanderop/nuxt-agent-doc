@@ -1,78 +1,26 @@
-# Nuxt Minimal Starter
+# nuxt-agent-doc
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+A Nuxt 4 blog with an AI chat agent layered on top — a minimalist reproduction of the `nuxt.com` documentation agent, applied to a personal blog. The chat slideover is available on every page and uses an `x-page-path` header so questions like "tldr this" answer in the context of whichever post the reader has open.
+
+**Stack:** Nuxt 4 · Nuxt UI v4 · Nuxt Content 3 · Vercel AI SDK · Anthropic Claude · Drizzle + libSQL/Turso · MCP toolkit · evalite.
 
 ## Setup
 
-Make sure to install dependencies:
+Requires Node ≥ 22 and pnpm.
 
 ```bash
-# npm
-npm install
-
-# pnpm
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+pnpm dev          # http://localhost:3000
 ```
 
 ## Production
 
-Build the application for production:
-
 ```bash
-# npm
-npm run build
-
-# pnpm
 pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
 pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+See the [Nuxt deployment docs](https://nuxt.com/docs/getting-started/deployment).
 
 ## Environment variables
 

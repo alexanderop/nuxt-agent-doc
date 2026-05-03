@@ -10,4 +10,4 @@ At code level: DRY at structural level (types, data models), but three similar l
 
 **Scaffold First:** If something benefits all future work, do it first. Ask "does every subsequent phase benefit from this existing?" CI, linting, testing infra, shared types are scaffold. Sequence for maximum option value: infra/setup before features, tests before fixes. Keep commits small and single-purpose.
 
-Subtraction comes before scaffolding — remove dead weight first, then lay foundations.
+Subtraction comes before scaffolding — remove dead weight first, then lay foundations. See [[subtract-before-you-add]].

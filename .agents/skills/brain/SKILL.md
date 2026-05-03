@@ -1,8 +1,7 @@
 ---
 name: brain
 description: >-
-  Read/write brain files (Obsidian vault at brain/). Use for any task that persists knowledge —
-  reflection, planning, or direct edits. Triggers: brain/ modifications, "add to brain".
+  Read/write the Obsidian brain vault (brain/). Triggers: "add to brain", brain/ edits.
 ---
 
 # Brain
@@ -25,10 +24,10 @@ For directories without a dedicated index file yet, scan nearby files directly a
 brain/
 ├── index.md              <- root entry point, links to everything
 ├── principles.md         <- index for principles/
-├── principles/           <- engineering and design principles
-├── codebase/             <- project-specific knowledge and gotchas
-└── plans/                <- feature plans
+└── principles/           <- engineering and design principles
 ```
+
+Add new top-level directories (e.g. `codebase/`, `plans/`) only when there is real content to put in them — empty stubs are flagged on the next meditate pass.
 
 **Rules:**
 

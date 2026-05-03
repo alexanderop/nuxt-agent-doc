@@ -21,6 +21,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command'); if echo \"$cmd\" | grep -qE '(^|[^a-zA-Z0-9_])npm($|[^a-zA-Z0-9_])'; then jq -n '{hookSpecificOutput: {hookEventName: \"PreToolUse\", permissionDecision: \"deny\", permissionDecisionReason: \"This project uses pnpm. Use `pnpm` instead of `npm` (e.g. `pnpm install`, `pnpm add <pkg>`, `pnpm run <script>`).\"}}'; fi"
+          }
+        ]
+      }
     ]
   }
 }

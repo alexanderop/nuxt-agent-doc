@@ -10,7 +10,7 @@ When you catch yourself writing the same instruction a second time:
 2. If yes, encode it. Delete the instruction
 3. If no (genuinely requires judgment), make the instruction more prominent and add an example of the failure mode
 
-**Corollary:** Don't paper over symptoms. If the fix is structural, ONLY use the structural fix. The instruction IS the symptom.
+**Corollary:** Don't paper over symptoms. See [[fix-root-causes]] for the debugging side; this principle is the meta-move once a recurring fix is found — turn the lesson into a mechanism. If the fix is structural, ONLY use the structural fix. The instruction IS the symptom.
 
 **Corollary — lint severity:** A rule worth enabling is worth blocking on. Default new lint rules to `error`, not `warn`. Warnings rot: they accumulate, get ignored, and trick humans into thinking the rule is enforced when it isn't. If a rule shouldn't block, turn it off — don't keep it as ambient noise.
 

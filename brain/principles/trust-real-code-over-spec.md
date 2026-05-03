@@ -5,7 +5,10 @@ When a spec, goal doc, or planning artifact disagrees with a comparable working 
 **Why:** Spec docs are written ahead of implementation and rarely re-validated. They confidently describe APIs that don't exist, sample data that's gone, and operators the library never had. Working code in a comparable repo has been compiled, run, and (usually) tested — every line is evidence. The cost of cloning a reference repo is one minute; the cost of building against a wrong spec is hours of rediscovery.
 
 **Pattern:**
-- **Keep reference repos accessible.** `~/Projects/opensource/*` is the canonical location. Clone the repos that ship the patterns you'll need (e.g. `nuxt.com` for MCP/content, `npmx.dev` for Playwright/e2e).
+- **Keep reference repos accessible.** `~/Projects/opensource/*` is the canonical location. The repos that ship the patterns this project needs:
+  - `~/Projects/opensource/nuxt.com` — MCP toolkit usage, agent chat composables, comark streaming, content config.
+  - `~/Projects/opensource/npmx.dev` — Playwright + a11y, vitest browser mode, Nuxt test layering.
+- **Trigger phrase.** When the user says *"how does opensource/X on my disk do this"* or *"look at opensource/X"*, stop guessing immediately and read the reference repo before writing any more code. This phrasing recurs across sessions and is always a sign that improvising has already cost too much. Read first; don't argue with the redirect.
 - **Default to "show me real usage" over "what does the spec say".** When a goal doc cites an API, grep the reference repo for the same call. If the shapes disagree, the spec is wrong.
 - **Cite the source file.** Quote the path you read (`~/Projects/opensource/nuxt.com/test/mcp.eval.ts:42`) so the human can verify and so the lesson outlives this conversation.
 - **Trim, don't copy.** Reference repos carry baggage — Lighthouse runs, mock connectors, prod-only wiring. Adopt the core pattern and strip the rest.

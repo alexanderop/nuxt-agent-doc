@@ -1,5 +1,7 @@
 # Layer the Monolith
 
+> **Current state of this repo:** flat Nuxt app (`app/components`, `app/composables`, `app/pages`). The shape below is *aspirational* — apply when the codebase grows past the threshold where flat stops scaling. Don't assume the layout exists.
+
 Scale a Vue/Nuxt codebase by layering it, not by splitting it across deployments. Nuxt Layers + atomic, feature-based folders give you the boundaries that microfrontends promise — without the runtime cost, build orchestration, or version-skew failure modes. Module federation is a last resort, not a default.
 
 **Why:** Most "we need microfrontends" pain is actually "we have no internal boundaries." Layered monoliths give every team a private surface (its own layer or feature module) with a public contract (exports, routes, components), while keeping a single build, single deploy, single source of truth. You get isolation without distribution, and you can split later if a real boundary appears — the reverse direction is brutal.
@@ -16,7 +18,7 @@ Scale a Vue/Nuxt codebase by layering it, not by splitting it across deployments
 - Layers are how you split by *capability* (auth, billing, admin) or by *product surface* (marketing site vs. app shell) without cross-imports leaking concerns.
 - A layer should be installable and deletable. If removing it requires touching ten unrelated files, the boundary leaked.
 
-*Imports point inward:*
+*Imports point inward:* ([[boundary-discipline]] at module scope)
 - Features may import from `shared/`. `shared/` may not import from features.
 - Two features must not import from each other directly. If they need to talk, the contract belongs in `shared/` or a parent layer — or one of them is the wrong shape.
 

@@ -17,14 +17,17 @@
 
 ## Vue / Nuxt
 - [[principles/composables-are-the-unit-of-logic]]
+- [[principles/compose-parts-not-flags]]
 - [[principles/test-behavior-not-implementation]]
 - [[principles/make-illegal-states-unrepresentable]]
+- [[principles/observable-agent-activity]]
 
 ## Verification
 - [[principles/prove-it-works]]
 - [[principles/verify-in-the-browser]]
 - [[principles/trust-real-code-over-spec]]
 - [[principles/fix-root-causes]]
+- [[principles/testing-strategy]]
 
 ## Delegation
 - [[principles/cost-aware-delegation]]

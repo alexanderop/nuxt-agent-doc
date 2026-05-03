@@ -10,3 +10,5 @@ Every delegation boundary has a budget. Account for delegation overhead itself, 
 - **Hard-cap scope:** Limit files per phase. One function/type + tests per unit of work. Without caps, work expands
 - **Account for coordination overhead:** Team coordination costs turns. Direct task delegation returns results without coordination tax
 - **Exit smart, not late:** Commit passing work before your budget runs out, not at the last moment
+
+Scope: turns and dollars across delegation boundaries. The within-session token equivalent is [[guard-the-context-window]].

@@ -1,30 +1,33 @@
 import process from 'node:process'
 import { defineConfig, devices } from '@playwright/test'
+import type { ConfigOptions } from '@nuxt/test-utils/playwright'
 
-const baseURL = 'http://localhost:3000'
+const baseURL = 'http://localhost:5678'
 
-export default defineConfig({
+export default defineConfig<ConfigOptions>({
   testDir: './test/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  reporter: process.env.CI ? [['github'], ['html']] : 'list',
-  timeout: 30_000,
+  reporter: process.env.CI ? [['github'], ['html']] : 'html',
+  timeout: 120_000,
   webServer: {
-    command: process.env.CI
-      ? 'pnpm preview'
-      : 'pnpm build && pnpm preview',
+    command: 'pnpm start:playwright:webserver',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000
+    timeout: 60_000
   },
   use: {
     baseURL,
-    trace: 'on-first-retry'
+    trace: 'on-first-retry',
+    nuxt: {
+      rootDir: import.meta.dirname,
+      host: baseURL
+    }
   },
   projects: [
     {
-      name: 'chromium',
+      name: 'chromium-headless-shell',
       use: { ...devices['Desktop Chrome'] }
     }
   ]

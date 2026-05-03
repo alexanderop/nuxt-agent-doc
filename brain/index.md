@@ -3,6 +3,7 @@
 ## Principles
 - [[principles]]
 - [[principles/boundary-discipline]]
+- [[principles/compose-parts-not-flags]]
 - [[principles/composables-are-the-unit-of-logic]]
 - [[principles/cost-aware-delegation]]
 - [[principles/encode-lessons-in-structure]]
@@ -16,11 +17,19 @@
 - [[principles/make-operations-idempotent]]
 - [[principles/migrate-callers-then-delete-legacy-apis]]
 - [[principles/never-block-on-the-human]]
+- [[principles/observable-agent-activity]]
 - [[principles/outcome-oriented-execution]]
 - [[principles/prove-it-works]]
 - [[principles/redesign-from-first-principles]]
 - [[principles/serialize-shared-state-mutations]]
 - [[principles/subtract-before-you-add]]
 - [[principles/test-behavior-not-implementation]]
+- [[principles/testing-strategy]]
 - [[principles/trust-real-code-over-spec]]
+- [[principles/verify-in-the-browser]]
+
+## Codebase
+- [[codebase/agent-chat-architecture]]
+- [[codebase/code-mode]]
+- [[codebase/gotchas]]
 

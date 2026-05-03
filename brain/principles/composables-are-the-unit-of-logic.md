@@ -16,6 +16,8 @@ In a Vue/Nuxt codebase, the composable is the default home for logic. Components
 - If a component has more than ~15 lines of logic between `<script setup>` and `<template>`, that logic wants to be a composable.
 - Props and emits are the component's only public API; composables are the only place internal state lives.
 
+**Dumb components, state lifted up.** As many dumb prop-rendering components as possible; state lives one level up in the composable or store that owns the feature. A child that needs to compute or refetch is a smell — the parent should pass the resolved value down. This keeps components trivially testable, replaceable, and free of runtime guards. When deciding whether to add a `ref` to a component, ask: can the composable own this and the component receive it as a prop?
+
 **Refactoring moves:**
 - *Extract Composable* when the same reactive logic appears in two components, or when one component crosses the size threshold.
 - *Inline Composable* when a `useX` is used in exactly one place and adds no clarity — collapse it back into the component.
@@ -24,3 +26,5 @@ In a Vue/Nuxt codebase, the composable is the default home for logic. Components
 **The Tests:**
 - "Can I test this logic without mounting a component?" If no, it's still entangled — pull more into the composable, more into pure functions.
 - "Does this composable do one thing I can name in five words?" If no, split it.
+
+The "push pure logic deeper" pattern is [[boundary-discipline]] applied at component scope. Tests on the pure core follow [[test-behavior-not-implementation]] — assert on what the composable returns, not how it computes it.

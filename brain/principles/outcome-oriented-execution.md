@@ -14,3 +14,7 @@ Optimize for the intended, verifiable end state rather than preserving smooth in
 - Declare where temporary breakage is acceptable
 - Keep high-signal checks for actively touched areas while migrating
 - Require full static and runtime verification at plan completion
+
+The canonical instance is [[migrate-callers-then-delete-legacy-apis]] — converge directly on the new API, accept intermediate breakage, verify at the end.
+
+The "remove first" stance comes from [[subtract-before-you-add]]; this principle authorizes the intermediate breakage that subtraction can produce during the converge step.

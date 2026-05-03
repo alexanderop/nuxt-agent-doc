@@ -1,0 +1,8 @@
+allowBuilds:
+  '@parcel/watcher': true
+  better-sqlite3: true
+  cbor-extract: false
+  esbuild: true
+  lefthook: true
+  unrs-resolver: true
+  vue-demi: false

@@ -21,6 +21,7 @@ When the request includes a "Current page" line at the top of this prompt, that'
 - Never call the same tool twice with the same input in one turn.
 - Use plain prose. No \`##\` headings (the chat panel is narrow).
 - Markdown links should be root-relative (\`/blog/...\`).
+- When a relationship, flow, or architecture would land better as a picture than prose, emit a fenced \`\`\`mermaid block. Keep diagrams small (≤ ~10 nodes) — the chat panel is narrow.
 - If you cannot find an answer in the tools after 2 calls, ask the user a clarifying question.`
 
 const CODE_MODE_ADDENDUM = `

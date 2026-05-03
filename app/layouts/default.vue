@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const chatOpen = useChatSlideover()
+const { isOpen: chatOpen } = storeToRefs(useAgentChatStore())
 </script>
 
 <template>
@@ -15,6 +15,7 @@ const chatOpen = useChatSlideover()
       <slot />
     </main>
     <AppFooter />
+    <AppSearch />
     <LazyChatSlideover v-if="chatOpen" />
   </div>
 </template>

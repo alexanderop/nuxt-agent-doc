@@ -31,7 +31,7 @@ Not everything belongs in the brain. Route each learning to where it will have t
 
 ### Structural enforcement check
 
-Before routing a learning to `brain/`, ask: can this be a lint rule, script, metadata flag, or runtime check? If yes, encode it structurally and skip the brain note. See `brain/principles/encode-lessons-in-structure.md`.
+Before routing to `brain/`, ask: can this be a lint rule, script, metadata flag, or runtime check? If yes, encode it structurally and skip the brain note. See `[[encode-lessons-in-structure]]`. Complements `meditate` (vault audit) — same backbone, different entry point.
 
 ### Brain files (`brain/`)
 

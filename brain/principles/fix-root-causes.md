@@ -13,3 +13,5 @@ When debugging, never paper over symptoms. Trace every problem to its root cause
 
 **Restart Bugs: Suspect State Before Code**
 Code doesn't change between runs. State does. When "fails after restart," suspect stale persistent state first — config files, caches, lock files, serialized state. If clearing a state file restores behavior, prioritize state validation as the fix.
+
+This is debugging discipline: find the cause inside the system. Once the recurring fix is identified, [[encode-lessons-in-structure]] turns the lesson into a mechanism so the symptom can't recur.

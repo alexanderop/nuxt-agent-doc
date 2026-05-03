@@ -2,13 +2,14 @@
   "name": "nuxt-agent-doc",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@10.33.2",
+  "packageManager": "pnpm@11.0.4",
   "engines": {
     "node": ">=22.0.0"
   },
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "build:test": "TEST=1 vp run build",
+    "dev": "rm -rf .nuxt && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -17,8 +18,11 @@
     "lint:eslint": "eslint . --cache",
     "typecheck": "nuxt typecheck",
     "test:types": "vue-tsc -b --noEmit",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
+    "test:unit": "vp test --project unit",
+    "test:nuxt": "vp test --project nuxt",
+    "test:e2e": "vp run build:test && playwright test",
+    "test:e2e:ui": "vp run build:test && playwright test --ui",
+    "start:playwright:webserver": "pnpm db:migrate && TEST=1 vp run preview --port 5678",
     "eval": "evalite",
     "eval:run": "evalite run --threshold 80",
     "db:generate": "drizzle-kit generate",
@@ -38,16 +42,21 @@
     "@nuxt/eslint": "1.15.2",
     "@nuxt/ui": "4.7.1",
     "@nuxtjs/mcp-toolkit": "^0.15.0",
+    "@pinia/nuxt": "^0.11.3",
     "@vueuse/core": "^14.3.0",
     "@vueuse/nuxt": "^14.3.0",
     "ai": "^6.0.172",
+    "beautiful-mermaid": "^1.1.3",
     "better-sqlite3": "^12.9.0",
     "drizzle-orm": "^0.45.2",
     "eslint": "^10.2.1",
     "evlog": "^2.14.1",
     "feed": "^5.2.1",
+    "h3": "1.15.11",
     "nuxt": "^4.4.4",
+    "pinia": "^3.0.4",
     "secure-exec": "^0.2.1",
+    "shaders": "^2.5.110",
     "shiki": "^4.0.2",
     "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3",
@@ -60,24 +69,22 @@
     "@nuxt/eslint-config": "^1.15.2",
     "@nuxt/test-utils": "^4.0.3",
     "@playwright/test": "^1.59.1",
+    "@vue/test-utils": "2.4.6",
     "drizzle-kit": "^0.31.10",
     "eslint-plugin-oxlint": "^1.62.0",
     "evalite": "^1.0.0-beta.16",
     "lefthook": "^1.13.6",
     "oxlint": "^1.62.0",
-    "vitest": "^4.1.5",
+    "vite-plus": "0.1.16",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.16",
     "vue-tsc": "^2.2.12"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "better-sqlite3",
-      "esbuild",
-      "lefthook",
-      "oxc-parser",
-      "oxc-resolver",
-      "oxlint",
-      "unrs-resolver"
-    ]
+    "overrides": {
+      "h3": "1.15.11",
+      "h3-next": "npm:h3@1.15.11",
+      "vite": "npm:@voidzero-dev/vite-plus-core@0.1.16",
+      "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.16"
+    }
   }
 }

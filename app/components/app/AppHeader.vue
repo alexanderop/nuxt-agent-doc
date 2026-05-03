@@ -4,7 +4,7 @@ const links = [
   { label: 'Notes', to: '/notes' },
   { label: 'TIL', to: '/til' }
 ]
-const chatOpen = useChatSlideover()
+const { isOpen: chatOpen } = storeToRefs(useAgentChatStore())
 </script>
 
 <template>
@@ -19,6 +19,7 @@ const chatOpen = useChatSlideover()
         </UButton>
       </nav>
       <div class="flex items-center gap-2">
+        <UContentSearchButton />
         <UButton
           icon="i-lucide-sparkles"
           color="neutral"

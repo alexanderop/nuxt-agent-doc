@@ -24,3 +24,5 @@ Code Organization:
 **The Tests:**
 - "Is this data crossing a system boundary right now?" If not, validation is redundant
 - "Can this be a pure function that the shell just calls?" If yes, extract it
+
+At the boundary, parse `unknown` into a strict type via [[make-illegal-states-unrepresentable]]. Once parsed, trust.

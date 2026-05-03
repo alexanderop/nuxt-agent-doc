@@ -1,26 +1,10 @@
 <script setup lang="ts">
 import type { UIMessage } from 'ai'
 import { isTextUIPart, isToolUIPart, isReasoningUIPart, getToolName } from 'ai'
-import { isToolStreaming, isPartStreaming } from '@nuxt/ui/utils/ai'
-import type { ShowPostSuccess } from '~~/server/utils/tools/show-post'
+import { isPartStreaming } from '@nuxt/ui/utils/ai'
+import type { ToolPart } from './tool-renderers'
 
 const { message } = defineProps<{ message: UIMessage }>()
-
-type ToolPart = Extract<UIMessage['parts'][number], { type: `tool-${string}` } | { type: 'dynamic-tool' }>
-
-function isShowPostSuccess(value: unknown): value is ShowPostSuccess {
-  return typeof value === 'object' && value !== null && 'title' in value && 'slug' in value
-}
-
-function showPostResult(part: ToolPart): ShowPostSuccess | null {
-  if (part.state !== 'output-available') return null
-  return isShowPostSuccess(part.output) ? part.output : null
-}
-
-function showPostText(part: ToolPart): string {
-  if (isToolStreaming(part)) return 'Finding post…'
-  return showPostResult(part) ? 'Found post' : 'Post not found'
-}
 
 function codeInputLength(part: ToolPart): number {
   if (!('input' in part) || typeof part.input !== 'object' || part.input === null) return 0
@@ -56,25 +40,13 @@ function codeBlockKey(part: ToolPart, index: number): string {
       </p>
     </template>
 
-    <template v-else-if="isToolUIPart(part) && getToolName(part) === 'show_post'">
-      <UChatTool
-        icon="i-lucide-file-text"
-        :streaming="isToolStreaming(part)"
-        :text="showPostText(part)"
-      />
-      <ToolsPostCard
-        v-if="showPostResult(part)"
-        v-bind="showPostResult(part)!"
-      />
-    </template>
-
     <ChatCodeBlock
       v-else-if="isToolUIPart(part) && getToolName(part) === 'code'"
       :key="codeBlockKey(part, i)"
       :part="part"
     />
 
-    <ChatToolGeneric
+    <ChatToolRender
       v-else-if="isToolUIPart(part)"
       :part="part"
     />

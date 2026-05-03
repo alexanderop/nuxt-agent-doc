@@ -1,8 +1,7 @@
 ---
 name: ruminate
 description: >-
-  Mine past Claude Code conversations for uncaptured patterns, corrections, and knowledge.
-  Cross-references with existing brain content. Triggers: "ruminate", "mine my history".
+  Mine past Claude Code conversations for uncaptured patterns. Triggers: "ruminate", "mine my history".
 ---
 
 # Ruminate

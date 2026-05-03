@@ -25,6 +25,7 @@ Prompt spec:
   - **Low-value**: Fails the test: "Would Claude reliably get this wrong without this note, AND does it come up often or cause real damage?" If not both, flag it.
   - **Verbose**: Could convey the same information in fewer words
   - **Orphaned**: Exists on disk but is not linked from any index or other brain file
+  - **Empty stub**: Index files with no entries, or top-level directories with no content — flag for deletion until real content exists
 - **Audit CLAUDE.md**: Flag sections that are outdated, redundant with brain notes or skill instructions, or could be condensed. Check that instructions match actual project structure.
 - **Audit auto-memory files**: Read MEMORY.md and linked files. Flag:
   - **Stale session state**: Entries referencing completed work, old session IDs, or finished tasks

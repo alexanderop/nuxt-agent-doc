@@ -7,4 +7,4 @@ When integrating a change, don't bolt it onto the existing design. Redesign as i
 - Propagate the change through every reference — types, docs, examples, rationale sections
 - The redesign should be thought of holistically but delivered incrementally
 
-This is the method for preserving option value when integrating changes into an existing design.
+This is the integration-time companion to [[foundational-thinking]] (option value at design time) and [[subtract-before-you-add]] (remove before adding): when a new requirement lands, redesign from scratch rather than bolting on.
