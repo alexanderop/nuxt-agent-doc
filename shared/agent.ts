@@ -1,5 +1,7 @@
 export type AgentMode = 'classical' | 'code'
 
+export type ViewMode = AgentMode | 'both'
+
 export function isAgentMode(value: unknown): value is AgentMode {
   return value === 'classical' || value === 'code'
 }

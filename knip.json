@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "content.config.ts",
+    "test/**/*.eval.ts",
+    "scripts/**/*.ts"
+  ],
+  "ignoreDependencies": [
+    "beautiful-mermaid"
+  ]
+}

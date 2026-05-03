@@ -20,12 +20,17 @@ const MAX_LOG_ENTRIES = 200
 export type ToolFn = (input: unknown) => Promise<unknown> | unknown
 export type CodeFns = Record<string, ToolFn>
 
+export type SubToolCallEvent
+  = { kind: 'start', name: string, seq: number, startedAt: number }
+    | { kind: 'end', name: string, seq: number, startedAt: number, endedAt: number, result?: unknown, error?: string }
+
 export type ExecOptions = {
   wallTimeLimitMs?: number
   maxToolCalls?: number
   maxResultSize?: number
   maxToolResponseSize?: number
   maxRequestBodyBytes?: number
+  onSubToolCall?: (event: SubToolCallEvent) => void
 }
 
 export type ExecResult = {
@@ -43,6 +48,8 @@ type Execution = {
   rpcCallCount: number
   maxToolCalls: number
   maxToolResponseSize: number
+  onSubToolCall?: (event: SubToolCallEvent) => void
+  subToolSeq: number
 }
 
 type RpcState = {
@@ -162,6 +169,24 @@ async function readRpcBody(req: IncomingMessage, maxBytes: number): Promise<{ bo
   return { body: Buffer.concat(chunks).toString('utf8') }
 }
 
+async function invokeFn(exec: Execution, name: string, args: unknown, fn: ToolFn): Promise<RpcReply> {
+  const seq = ++exec.subToolSeq
+  const startedAt = Date.now()
+  exec.onSubToolCall?.({ kind: 'start', name, seq, startedAt })
+  try {
+    const result = await exec.restoreContext(fn, args)
+    const serialized = JSON.stringify(result)
+    exec.onSubToolCall?.({ kind: 'end', name, seq, startedAt, endedAt: Date.now(), result })
+    if (serialized && serialized.length > exec.maxToolResponseSize) {
+      return { status: 200, payload: { result: truncateResult(result, serialized.length, exec.maxToolResponseSize) } }
+    }
+    return { status: 200, payload: { result } }
+  } catch (err) {
+    exec.onSubToolCall?.({ kind: 'end', name, seq, startedAt, endedAt: Date.now(), error: getErrorMessage(err) })
+    throw err
+  }
+}
+
 async function dispatchToolCall(exec: Execution, name: string, args: unknown): Promise<RpcReply> {
   if (name === RETURN_TOOL) {
     if (exec.returned) return { status: 400, payload: { error: 'Return value already received for this execution' } }
@@ -175,12 +200,7 @@ async function dispatchToolCall(exec: Execution, name: string, args: unknown): P
   if (exec.rpcCallCount > exec.maxToolCalls) {
     return { status: 429, payload: { error: `Tool call limit exceeded (max ${exec.maxToolCalls})` } }
   }
-  const result = await exec.restoreContext(fn, args)
-  const serialized = JSON.stringify(result)
-  if (serialized && serialized.length > exec.maxToolResponseSize) {
-    return { status: 200, payload: { result: truncateResult(result, serialized.length, exec.maxToolResponseSize) } }
-  }
-  return { status: 200, payload: { result } }
+  return invokeFn(exec, name, args, fn)
 }
 
 async function buildRpcReply(req: IncomingMessage, state: RpcState): Promise<RpcReply> {
@@ -386,7 +406,9 @@ function registerExecution(
     deadlineMs: Date.now() + (options?.wallTimeLimitMs ?? DEFAULT_WALL_TIME_LIMIT_MS),
     rpcCallCount: 0,
     maxToolCalls: options?.maxToolCalls ?? DEFAULT_MAX_TOOL_CALLS,
-    maxToolResponseSize: options?.maxToolResponseSize ?? DEFAULT_MAX_TOOL_RESPONSE_SIZE
+    maxToolResponseSize: options?.maxToolResponseSize ?? DEFAULT_MAX_TOOL_RESPONSE_SIZE,
+    onSubToolCall: options?.onSubToolCall,
+    subToolSeq: 0
   })
   return execId
 }

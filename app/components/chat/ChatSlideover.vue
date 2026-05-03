@@ -2,27 +2,20 @@
 const store = useAgentChatStore()
 const {
   isOpen: open,
-  mode,
+  viewMode,
   useContext,
   currentPage,
-  messages,
+  hasAnyMessages,
   canClear
 } = storeToRefs(store)
 const {
   ask,
   clear,
-  switchMode,
   toggleContext,
   expandToFullScreen,
+  send,
   faqQuestions
 } = store
-
-const showDetails = ref(false)
-
-const modeItems = [
-  { label: 'Classical', value: 'classical' as const },
-  { label: 'Code Mode', value: 'code' as const }
-]
 
 const slideTransition = {
   'enter-active-class': 'transition-all duration-150',
@@ -38,6 +31,14 @@ defineShortcuts({
     }
   }
 })
+
+// In Both mode, the slideover never renders the split view — auto-expand to /chat instead.
+async function handleSlideoverSend(): Promise<void> {
+  if (viewMode.value === 'both') {
+    await expandToFullScreen()
+  }
+  await send()
+}
 </script>
 
 <template>
@@ -60,17 +61,6 @@ defineShortcuts({
     </template>
 
     <template #actions>
-      <UTooltip text="Toggle agent details">
-        <UButton
-          icon="i-lucide-sliders-horizontal"
-          color="neutral"
-          variant="ghost"
-          size="sm"
-          aria-label="Toggle agent details"
-          :class="showDetails ? 'text-primary' : ''"
-          @click="showDetails = !showDetails"
-        />
-      </UTooltip>
       <UTooltip v-if="canClear" text="Clear chat">
         <UButton
           icon="i-lucide-list-x"
@@ -109,31 +99,6 @@ defineShortcuts({
     <template #body>
       <div class="flex flex-col h-full">
         <Transition v-bind="slideTransition">
-          <div v-if="showDetails" class="px-4 py-3 border-b border-default flex flex-col gap-2 bg-elevated/30">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-xs font-medium text-muted">Agent mode</span>
-              <UTabs
-                :model-value="mode"
-                :items="modeItems"
-                :content="false"
-                size="xs"
-                variant="pill"
-                @update:model-value="(v) => switchMode(v as typeof mode)"
-              />
-            </div>
-            <p class="text-[11px] text-muted leading-snug">
-              <template v-if="mode === 'classical'">
-                One MCP tool call per step — classical fan-out.
-              </template>
-              <template v-else>
-                LLM writes JS that orchestrates tools in a V8 sandbox — one round-trip.
-              </template>
-            </p>
-            <ChatMetricsCompare />
-          </div>
-        </Transition>
-
-        <Transition v-bind="slideTransition">
           <div
             v-if="currentPage && useContext"
             class="px-4 py-2 border-b border-default flex items-center gap-2"
@@ -155,11 +120,15 @@ defineShortcuts({
         </Transition>
 
         <div class="flex-1 overflow-y-auto overscroll-none">
-          <ChatEmptyState
-            v-if="!messages.length"
-            :faq-questions="faqQuestions"
-            @ask="ask"
-          />
+          <template v-if="!hasAnyMessages">
+            <div class="px-4 py-3 border-b border-default flex justify-center">
+              <ChatModePicker size="compact-slideover" />
+            </div>
+            <ChatEmptyState
+              :faq-questions="faqQuestions"
+              @ask="ask"
+            />
+          </template>
 
           <div v-else class="px-4 sm:px-4">
             <ChatMessages compact class="pt-4 pb-4" />
@@ -167,7 +136,7 @@ defineShortcuts({
         </div>
 
         <div class="border-t border-default">
-          <ChatComposer />
+          <ChatComposer :on-submit="handleSlideoverSend" />
         </div>
       </div>
     </template>

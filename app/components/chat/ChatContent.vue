@@ -44,6 +44,7 @@ function codeBlockKey(part: ToolPart, index: number): string {
       v-else-if="isToolUIPart(part) && getToolName(part) === 'code'"
       :key="codeBlockKey(part, i)"
       :part="part"
+      :message="message"
     />
 
     <ChatToolRender

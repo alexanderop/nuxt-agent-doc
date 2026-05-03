@@ -9,7 +9,8 @@ useHead({
 
 const store = useAgentChatStore()
 const {
-  messages,
+  viewMode,
+  hasAnyMessages,
   canClear
 } = storeToRefs(store)
 const {
@@ -18,6 +19,24 @@ const {
   collapseToSidebar,
   faqQuestions
 } = store
+
+const modeDescriptions: Record<typeof viewMode.value, string> = {
+  classical: 'One MCP tool call per LLM step. Classical fan-out.',
+  code: 'LLM writes JS that batches tool calls in a V8 sandbox.',
+  both: 'Same blog. Two agent architectures. Run both side-by-side.'
+}
+
+const overflowItems = computed(() => {
+  const items: { label: string, icon: string, onSelect: () => void }[] = []
+  if (canClear.value) {
+    items.push({
+      label: 'New conversation',
+      icon: 'i-lucide-list-x',
+      onSelect: () => clear()
+    })
+  }
+  return [items]
+})
 </script>
 
 <template>
@@ -36,23 +55,23 @@ const {
             </button>
           </UTooltip>
 
-          <div class="flex items-center gap-1.5">
-            <UTooltip v-if="canClear" text="New conversation">
+          <div class="flex items-center gap-2">
+            <ChatModePicker v-if="hasAnyMessages" size="compact-header" />
+            <UDropdownMenu v-if="hasAnyMessages && (overflowItems[0]?.length ?? 0) > 0" :items="overflowItems">
               <UButton
-                icon="i-lucide-list-x"
+                icon="i-lucide-more-horizontal"
                 color="neutral"
                 variant="ghost"
                 size="sm"
-                aria-label="Clear conversation"
-                @click="clear"
+                aria-label="More actions"
               />
-            </UTooltip>
+            </UDropdownMenu>
             <UColorModeButton size="sm" color="neutral" variant="ghost" />
           </div>
         </div>
       </div>
 
-      <template v-if="!messages.length">
+      <template v-if="!hasAnyMessages">
         <div class="flex-1 flex flex-col items-center justify-center gap-8 p-8">
           <div class="flex w-full max-w-2xl flex-col items-center px-4">
             <div class="text-center">
@@ -63,6 +82,14 @@ const {
                 Ask anything about Alex's blog, notes, or TILs.
               </p>
             </div>
+          </div>
+
+          <div class="w-full max-w-2xl flex flex-col items-center gap-3">
+            <ChatModePicker size="hero" />
+            <p class="text-sm text-muted text-center">
+              {{ modeDescriptions[viewMode] }}
+            </p>
+            <ChatModeMetricsStrip />
           </div>
 
           <div class="w-full max-w-2xl flex flex-col gap-6">
@@ -77,6 +104,16 @@ const {
               />
             </div>
           </div>
+        </div>
+      </template>
+
+      <template v-else-if="viewMode === 'both'">
+        <div class="flex-1 min-h-0 px-3 sm:px-4 pt-12 pb-3">
+          <ChatSplitView />
+        </div>
+
+        <div class="mx-auto w-full max-w-3xl px-4 sm:px-6 pb-3">
+          <ChatComposer />
         </div>
       </template>
 

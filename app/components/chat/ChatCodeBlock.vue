@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { UIMessage } from 'ai'
+import { isSubToolCallPart, type SubToolCall } from '~~/shared/agent-telemetry'
 
 type ToolPart = Extract<UIMessage['parts'][number], { type: `tool-${string}` } | { type: 'dynamic-tool' }>
 
-const { part } = defineProps<{ part: ToolPart }>()
+const { part, message } = defineProps<{ part: ToolPart, message: UIMessage }>()
 
 const colorMode = useColorMode()
 
@@ -40,6 +41,35 @@ const output = computed<string>(() => {
   if (part.state === 'output-error') return part.errorText ?? 'Unknown error'
   return ''
 })
+
+const codeToolCallId = computed<string | null>(() =>
+  'toolCallId' in part && typeof part.toolCallId === 'string' ? part.toolCallId : null
+)
+
+const subToolCalls = computed<SubToolCall[]>(() => {
+  const id = codeToolCallId.value
+  if (!id) return []
+  const collected: SubToolCall[] = []
+  for (const p of message.parts) {
+    if (!isSubToolCallPart(p)) continue
+    if (p.data.codeToolCallId !== id) continue
+    collected.push(p.data)
+  }
+  return collected
+})
+
+const SUBTOOL_LABEL: Record<string, string> = {
+  list_blog_posts: 'list blog posts',
+  get_blog_post: 'get blog post',
+  list_notes: 'list notes',
+  get_note: 'get note',
+  list_tils: 'list TILs',
+  get_til: 'get TIL'
+}
+
+function labelFor(name: string): string {
+  return SUBTOOL_LABEL[name] ?? name
+}
 
 const highlightedHtml = ref<string>('')
 const showCode = ref(true)
@@ -87,6 +117,27 @@ watchEffect(async () => {
       <!-- eslint-enable vue/no-v-html -->
       <pre v-else class="px-3 py-3 text-xs overflow-x-auto whitespace-pre-wrap">{{ code }}</pre>
     </template>
+    <div v-if="subToolCalls.length" class="px-3 py-2 border-t border-default flex flex-wrap gap-1.5">
+      <TransitionGroup
+        :enter-active-class="'transition-opacity duration-200'"
+        :enter-from-class="'opacity-0'"
+        :enter-to-class="'opacity-100'"
+      >
+        <span
+          v-for="call in subToolCalls"
+          :key="call.seq"
+          class="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded ring ring-default bg-elevated/60"
+          :title="call.resultSummary"
+        >
+          <UIcon
+            :name="call.endedAt ? 'i-lucide-check' : 'i-lucide-loader'"
+            :class="call.endedAt ? 'size-3 text-success' : 'size-3 text-muted animate-spin'"
+          />
+          <span class="text-default">{{ labelFor(call.name) }}</span>
+          <span v-if="call.endedAt" class="text-muted tabular-nums">{{ call.endedAt - call.startedAt }}ms</span>
+        </span>
+      </TransitionGroup>
+    </div>
     <div v-if="output" class="border-t border-default">
       <button
         type="button"

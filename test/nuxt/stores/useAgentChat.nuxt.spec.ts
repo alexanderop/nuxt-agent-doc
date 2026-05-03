@@ -114,10 +114,16 @@ async function mountAgentStore(options: { route?: string, stubNavigation?: boole
   return store
 }
 
-function currentChat(): ChatStub {
-  const last = chatInstances.at(-1)
-  if (!last) throw new Error('no Chat instance was created')
-  return last
+function classicalChat(): ChatStub {
+  const chat = chatInstances[0]
+  if (!chat) throw new Error('no Chat instance was created')
+  return chat
+}
+
+function codeChat(): ChatStub {
+  const chat = chatInstances[1]
+  if (!chat) throw new Error('code Chat instance was not created')
+  return chat
 }
 
 beforeEach(() => {
@@ -134,93 +140,128 @@ beforeEach(() => {
 })
 
 describe('useAgentChatStore — initial state', () => {
-  it('starts empty in classical mode with the slideover closed', async () => {
+  it('starts empty in both mode with the slideover closed', async () => {
     const store = await mountAgentStore()
-    expect(store.messages).toEqual([])
-    expect(store.mode).toBe('classical')
+    expect(store.messagesClassical).toEqual([])
+    expect(store.messagesCode).toEqual([])
+    expect(store.viewMode).toBe('both')
     expect(store.isOpen).toBe(false)
     expect(store.useContext).toBe(true)
     expect(store.canClear).toBe(false)
     expect(store.input).toBe('')
   })
 
-  it('hydrates messages from sessionStorage on first access', async () => {
+  it('creates two Chat instances — one per mode', async () => {
+    await mountAgentStore()
+    expect(chatInstances).toHaveLength(2)
+    expect(chatInstances[0]?.id).not.toBe(chatInstances[1]?.id)
+  })
+
+  it('hydrates classical messages from per-mode sessionStorage', async () => {
     const seeded: StubMessage[] = [{ id: 'u-0', role: 'user', parts: [{ type: 'text', text: 'hello' }] }]
-    sessionStorage.setItem('agent-messages', JSON.stringify(seeded))
+    sessionStorage.setItem('agent-messages-classical', JSON.stringify(seeded))
     const store = await mountAgentStore()
-    expect(store.messages).toEqual(seeded)
+    expect(store.messagesClassical).toEqual(seeded)
     expect(store.canClear).toBe(true)
   })
 })
 
 describe('useAgentChatStore — sending', () => {
-  it('sends typed input and clears the textarea', async () => {
+  it('in both mode, send dispatches to both Chat instances', async () => {
     const store = await mountAgentStore()
     store.input = 'what is nuxt?'
     await store.send()
-    expect(currentChat().sendMessage).toHaveBeenCalledWith({ text: 'what is nuxt?' })
+    expect(classicalChat().sendMessage).toHaveBeenCalledWith({ text: 'what is nuxt?' })
+    expect(codeChat().sendMessage).toHaveBeenCalledWith({ text: 'what is nuxt?' })
     expect(store.input).toBe('')
-    expect(store.messages.map(m => m.role)).toEqual(['user', 'assistant'])
+  })
+
+  it('in single mode, send dispatches only to the active thread', async () => {
+    const store = await mountAgentStore()
+    store.switchMode('classical')
+    store.input = 'classical-only'
+    await store.send()
+    expect(classicalChat().sendMessage).toHaveBeenCalledWith({ text: 'classical-only' })
+    expect(codeChat().sendMessage).not.toHaveBeenCalled()
   })
 
   it('ignores whitespace-only input', async () => {
     const store = await mountAgentStore()
     store.input = '   '
     await store.send()
-    expect(currentChat().sendMessage).not.toHaveBeenCalled()
-    expect(store.messages).toEqual([])
+    expect(classicalChat().sendMessage).not.toHaveBeenCalled()
+    expect(codeChat().sendMessage).not.toHaveBeenCalled()
   })
 
-  it('ask() sends the given question without touching input', async () => {
+  it('ask() sends to the active mode without touching input', async () => {
     const store = await mountAgentStore()
+    store.switchMode('code')
     store.input = 'staged'
     await store.ask('what is the latest TIL?')
-    expect(currentChat().sendMessage).toHaveBeenCalledWith({ text: 'what is the latest TIL?' })
+    expect(codeChat().sendMessage).toHaveBeenCalledWith({ text: 'what is the latest TIL?' })
+    expect(classicalChat().sendMessage).not.toHaveBeenCalled()
     expect(store.input).toBe('staged')
   })
 })
 
 describe('useAgentChatStore — clear and switchMode', () => {
-  it('clear() empties messages, regenerates chatId, and wipes sessionStorage', async () => {
+  it('switchMode preserves messages — never destroys history', async () => {
     const store = await mountAgentStore()
+    store.switchMode('classical')
     await store.ask('seed')
-    const firstId = currentChat().id
-    expect(store.canClear).toBe(true)
+    const before = [...store.messagesClassical]
+
+    store.switchMode('code')
+    expect(store.messagesClassical).toEqual(before)
+    expect(classicalChat().stop).not.toHaveBeenCalled()
+  })
+
+  it('clear() in single mode clears only that thread', async () => {
+    const store = await mountAgentStore()
+    store.switchMode('classical')
+    await store.ask('seed-classical')
+    store.switchMode('code')
+    await store.ask('seed-code')
+
+    store.switchMode('classical')
+    store.clear()
+
+    expect(store.messagesClassical).toEqual([])
+    expect(store.messagesCode.length).toBeGreaterThan(0)
+  })
+
+  it('clear() in single mode rotates the chatId for that thread only', async () => {
+    const store = await mountAgentStore()
+    store.switchMode('classical')
+    const beforeClassical = localStorage.getItem('agent-chat-id-classical')
+    const beforeCode = localStorage.getItem('agent-chat-id-code')
+    await store.ask('seed')
 
     store.clear()
 
-    expect(store.messages).toEqual([])
-    await vi.waitFor(() => expect(sessionStorage.getItem('agent-messages')).toBe('[]'))
-    expect(localStorage.getItem('agent-chat-id')).not.toBe(JSON.stringify(firstId))
+    await vi.waitFor(() => {
+      expect(localStorage.getItem('agent-chat-id-classical')).not.toBe(beforeClassical)
+    })
+    expect(localStorage.getItem('agent-chat-id-code')).toBe(beforeCode)
   })
 
   it('clear() stops a streaming chat before resetting', async () => {
     const store = await mountAgentStore()
-    currentChat().startStreaming()
+    store.switchMode('classical')
+    classicalChat().startStreaming()
     store.clear()
-    expect(currentChat().stop).toHaveBeenCalled()
+    expect(classicalChat().stop).toHaveBeenCalled()
   })
 
-  it('switchMode(next) stops, flips mode, and clears messages', async () => {
+  it('switchMode(same) is a no-op', async () => {
     const store = await mountAgentStore()
+    store.switchMode('classical')
     await store.ask('seed')
-    expect(store.messages.length).toBeGreaterThan(0)
-
-    store.switchMode('code')
-
-    expect(store.mode).toBe('code')
-    expect(store.messages).toEqual([])
-  })
-
-  it('switchMode(same) is a no-op — preserves messages', async () => {
-    const store = await mountAgentStore()
-    await store.ask('seed')
-    const before = [...store.messages]
+    const before = [...store.messagesClassical]
 
     store.switchMode('classical')
 
-    expect(store.messages).toEqual(before)
-    expect(currentChat().stop).not.toHaveBeenCalled()
+    expect(store.messagesClassical).toEqual(before)
   })
 })
 
@@ -270,13 +311,34 @@ describe('useAgentChatStore — rate limiting', () => {
     const store = await mountAgentStore()
     expect(store.rateLimited).toBe(false)
   })
+
+  it('bothAvailable is true when remaining ≥ 2', async () => {
+    quotaRef.value = { remaining: 2, limit: 20, used: 18 }
+    const store = await mountAgentStore()
+    await vi.waitFor(() => expect(store.bothAvailable).toBe(true))
+  })
+
+  it('bothAvailable is false when remaining is 1', async () => {
+    quotaRef.value = { remaining: 1, limit: 20, used: 19 }
+    const store = await mountAgentStore()
+    await vi.waitFor(() => expect(store.bothAvailable).toBe(false))
+  })
+
+  it('sendDisabled in single mode mirrors rateLimited', async () => {
+    quotaRef.value = { remaining: 1, limit: 20, used: 19 }
+    const store = await mountAgentStore()
+    store.switchMode('classical')
+    await vi.waitFor(() => expect(store.bothAvailable).toBe(false))
+    expect(store.sendDisabled).toBe(false)
+  })
 })
 
 describe('useAgentChatStore — persistence side effects', () => {
-  it('onFinish writes the message list to sessionStorage', async () => {
+  it('onFinish writes the per-mode message list to sessionStorage', async () => {
     const store = await mountAgentStore()
+    store.switchMode('classical')
     await store.ask('hi')
-    const stored = JSON.parse(sessionStorage.getItem('agent-messages') ?? '[]')
+    const stored = JSON.parse(sessionStorage.getItem('agent-messages-classical') ?? '[]')
     expect(stored).toHaveLength(2)
   })
 })

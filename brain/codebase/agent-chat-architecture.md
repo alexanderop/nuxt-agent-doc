@@ -1,6 +1,12 @@
 # Agent Chat Architecture
 
-The chat feature lives in a single Pinia store: `app/stores/useAgentChat.ts`. One `Chat` instance per Nuxt app instance (i.e. one per SSR request, one per client session). All chat surfaces (`ChatSlideover`, `/chat` page, header trigger) read from this store.
+The chat feature lives in a single Pinia store: `app/stores/useAgentChat.ts`. The store holds **two** `Chat` instances — `chatClassical` and `chatCode` — one per server-facing `AgentMode`. Each instance has its own `chatId`, sessionStorage key (`agent-messages-classical` / `agent-messages-code`), and stream lifecycle. `AbstractChat` (`node_modules/ai/dist/index.mjs`) gives each instance its own `state`, `activeResponse`, `jobExecutor`, and `transport`, so two parallel streams are structurally safe. All chat surfaces (`ChatSlideover`, `/chat` page, header trigger) read from this store.
+
+## ViewMode vs AgentMode
+
+`AgentMode = 'classical' | 'code'` is server-facing — the request body always carries one of these. `ViewMode = AgentMode | 'both'` is UI-only — `'both'` is never sent to the server; instead, the store dispatches `sendMessage` to both `Chat` instances in parallel. This makes "the server received Both" structurally impossible.
+
+`switchMode(next)` flips `viewMode` and **does not** clear or stop streams — history is preserved across mode switches. `clear()` is mode-aware: in single mode it clears that thread; in `'both'` it confirms then clears both.
 
 ## The Constraints That Drove This Shape
 

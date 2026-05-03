@@ -14,17 +14,19 @@ import { useLogger } from 'evlog'
 import { buildSystemPrompt } from '../utils/system-prompt'
 import { contentTools } from '../utils/tools'
 import { showPostTool } from '../utils/tools/show-post'
-import { codeTool } from '../utils/tools/code'
+import { createCodeTool } from '../utils/tools/code'
 import { getAgentFingerprint } from '../utils/agent-fingerprint'
 import { consumeAgentRateLimit } from '../utils/rate-limit'
 import { db, schema } from '../db/client'
 import { isAgentMode, type AgentMode } from '~~/shared/agent'
+import { TURN_METRICS_PART_TYPE, type TurnMetrics } from '~~/shared/agent-telemetry'
 
 const MAX_STEPS = 8
 const MODEL = anthropic('claude-sonnet-4-6')
+const COST_PER_M_INPUT_DOLLARS = 3
+const COST_PER_M_OUTPUT_DOLLARS = 15
 
 const CLASSICAL_TOOLS: ToolSet = { ...contentTools, show_post: showPostTool }
-const CODE_TOOLS: ToolSet = { code: codeTool, show_post: showPostTool }
 
 export default defineEventHandler(async (event) => {
   await consumeAgentRateLimit(event)
@@ -42,7 +44,7 @@ export default defineEventHandler(async (event) => {
   const log = useLogger(event)
   const ai = createAILogger(log, {
     toolInputs: true,
-    cost: { 'claude-sonnet-4-6': { input: 3, output: 15 } }
+    cost: { 'claude-sonnet-4-6': { input: COST_PER_M_INPUT_DOLLARS, output: COST_PER_M_OUTPUT_DOLLARS } }
   })
 
   const abort = new AbortController()
@@ -84,6 +86,38 @@ export default defineEventHandler(async (event) => {
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
+      const turnStartedAt = Date.now()
+      const accum: TurnMetrics = {
+        steps: 0,
+        tools: 0,
+        elapsedMs: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCost: 0
+      }
+
+      // Code mode counts each sub-tool call inside the V8 sandbox; the AI SDK only sees one `code` tool call per step.
+      let subToolCount = 0
+      let nonCodeToolCount = 0
+
+      const tools: ToolSet = mode === 'code'
+        ? {
+            code: createCodeTool({
+              writer,
+              onSubToolCall: () => { subToolCount += 1 }
+            }),
+            show_post: showPostTool
+          }
+        : CLASSICAL_TOOLS
+
+      const emitMetrics = () => {
+        writer.write({
+          type: TURN_METRICS_PART_TYPE,
+          id: 'turn-metrics',
+          data: { ...accum }
+        })
+      }
+
       const result = streamText({
         model: ai.wrap(MODEL),
         maxOutputTokens: 2000,
@@ -91,7 +125,19 @@ export default defineEventHandler(async (event) => {
         stopWhen: stepCountIs(MAX_STEPS),
         system: buildSystemPrompt(pagePath, mode),
         messages: await convertToModelMessages(validated.data),
-        tools: mode === 'code' ? CODE_TOOLS : CLASSICAL_TOOLS,
+        tools,
+        onStepFinish: (step) => {
+          accum.steps += 1
+          for (const call of step.toolCalls) {
+            if (call.toolName !== 'code') nonCodeToolCount += 1
+          }
+          accum.tools = subToolCount + nonCodeToolCount
+          accum.inputTokens += step.usage.inputTokens ?? 0
+          accum.outputTokens += step.usage.outputTokens ?? 0
+          accum.elapsedMs = Date.now() - turnStartedAt
+          accum.estimatedCost = (accum.inputTokens * COST_PER_M_INPUT_DOLLARS + accum.outputTokens * COST_PER_M_OUTPUT_DOLLARS) / 1_000_000
+          emitMetrics()
+        },
         experimental_telemetry: {
           isEnabled: true,
           integrations: [createEvlogIntegration(ai)]

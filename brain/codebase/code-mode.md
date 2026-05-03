@@ -32,6 +32,14 @@ The page-path that flows into the system prompt comes from the `x-page-path` hea
 - Anthropic `input_json_delta` arrives in **coarse bursts**, not character-by-character. A ~150-char `code` body lands in one chunk around 2s in. UI must show a `writing…` placeholder, not assume per-char streaming will visibly progress.
 - `MAX_STEPS = 8` in `server/api/agent.post.ts`. Multi-step turns (discovery + fetching) are normal — running twice in one turn is not a bug.
 
+## Sub-tool data parts
+
+The `code` tool is built via a `createCodeTool({ writer, onSubToolCall })` factory inside `createUIMessageStream`'s execute callback so it can close over `writer`. The factory wires the V8 sandbox's `onSubToolCall` callback (added to `ExecOptions` in `code-runtime.ts`) to emit `data-subtool-call` UIMessage data parts on the stream — one start event then one end event per RPC call, scoped by id `${codeToolCallId}-${seq}` so both events reconcile to the same chip in the UI. `ChatCodeBlock` filters parts by `data.codeToolCallId === part.toolCallId` to render the chip strip beneath each code block.
+
+## Per-turn telemetry
+
+`streamText`'s `onStepFinish` accumulates step count, sub-tool count (from the factory's `onSubToolCall`), tokens, elapsed ms, and estimated cost. It writes a single `data-turn-metrics` part with stable id `'turn-metrics'` so each step's emission overwrites the prior one. UI components (`ChatTurnTicker`, `ChatTurnDeltaStrip`) walk `message.parts` for the latest such part. Because the AI SDK only sees one `code` tool call per step, the in-mode "tools" count is computed as `subToolCount + nonCodeToolCount` — the meaningful work, not the LLM's surface call count.
+
 ## Related
 
 - [[agent-chat-architecture]]

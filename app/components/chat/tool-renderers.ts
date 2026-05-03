@@ -4,14 +4,14 @@ import ChatResultShowPost from './ChatResultShowPost.vue'
 
 export type ToolPart = Extract<UIMessage['parts'][number], { type: `tool-${string}` } | { type: 'dynamic-tool' }>
 
-export type ChipRenderer = {
+type ChipRenderer = {
   icon: string
   streamingText: string
   doneText: string
   Result?: Component
 }
 
-export const TOOL_RENDERERS: Record<string, ChipRenderer> = {
+const TOOL_RENDERERS: Record<string, ChipRenderer> = {
   show_post: { icon: 'i-lucide-file-text', streamingText: 'Finding post…', doneText: 'Found post', Result: ChatResultShowPost },
   list_blog_posts: { icon: 'i-lucide-newspaper', streamingText: 'Searching blog posts…', doneText: 'Searched blog posts' },
   get_blog_post: { icon: 'i-lucide-book-open', streamingText: 'Reading blog post…', doneText: 'Read blog post' },
@@ -21,7 +21,7 @@ export const TOOL_RENDERERS: Record<string, ChipRenderer> = {
   get_til: { icon: 'i-lucide-lightbulb', streamingText: 'Reading TIL…', doneText: 'Read TIL' }
 }
 
-export const GENERIC_RENDERER: ChipRenderer = {
+const GENERIC_RENDERER: ChipRenderer = {
   icon: 'i-lucide-wrench',
   streamingText: 'Running…',
   doneText: 'Done'
