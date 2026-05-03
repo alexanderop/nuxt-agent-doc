@@ -5,6 +5,10 @@ const { status, quota } = defineProps<{
   status: ChatStatus
   quota: { remaining: number, limit: number } | null
 }>()
+
+defineEmits<{
+  stop: []
+}>()
 </script>
 
 <template>
@@ -16,5 +20,5 @@ const { status, quota } = defineProps<{
       {{ quota.remaining }}/{{ quota.limit }}
     </span>
   </UTooltip>
-  <UChatPromptSubmit :status="status" />
+  <UChatPromptSubmit :status="status" @stop="$emit('stop')" />
 </template>

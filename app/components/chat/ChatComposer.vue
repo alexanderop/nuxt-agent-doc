@@ -6,8 +6,8 @@ const { rows = 2, maxrows = 8, onSubmit } = defineProps<{
 }>()
 
 const store = useAgentChatStore()
-const { input, status, quota, rateLimited, sendDisabled, viewMode, bothAvailable } = storeToRefs(store)
-const { send } = store
+const { input, composerStatus, quota, rateLimited, sendDisabled, viewMode, bothAvailable } = storeToRefs(store)
+const { send, stop } = store
 
 const handleSubmit = async () => {
   if (onSubmit) {
@@ -45,7 +45,7 @@ const disabledHint = computed(() => {
       @submit="handleSubmit"
     >
       <template #footer>
-        <ChatPromptFooter :status="status" :quota="quota" />
+        <ChatPromptFooter :status="composerStatus" :quota="quota" @stop="stop" />
       </template>
     </UChatPrompt>
   </template>

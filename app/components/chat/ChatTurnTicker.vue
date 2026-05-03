@@ -51,6 +51,11 @@ function fmtSeconds(ms: number): string {
   if (ms < 1000) return `${ms}ms`
   return `${(ms / 1000).toFixed(1)}s`
 }
+
+function fmtCost(dollars: number): string {
+  if (dollars < 0.01) return `$${dollars.toFixed(4)}`
+  return `$${dollars.toFixed(3)}`
+}
 </script>
 
 <template>
@@ -70,6 +75,13 @@ function fmtSeconds(ms: number): string {
     <span class="inline-flex items-center gap-1">
       <UIcon name="i-lucide-wrench" class="size-3" />
       {{ metrics?.tools ?? 0 }} {{ (metrics?.tools ?? 0) === 1 ? 'tool' : 'tools' }}
+    </span>
+    <span
+      v-if="metrics && metrics.estimatedCost > 0"
+      class="inline-flex items-center gap-1"
+    >
+      <UIcon name="i-lucide-circle-dollar-sign" class="size-3" />
+      {{ fmtCost(metrics.estimatedCost) }}
     </span>
   </div>
 </template>

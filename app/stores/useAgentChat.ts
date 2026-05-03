@@ -1,6 +1,6 @@
 import { Chat } from '@ai-sdk/vue'
 import { defineStore } from 'pinia'
-import { DefaultChatTransport, type UIMessage } from 'ai'
+import { DefaultChatTransport, type ChatStatus, type UIMessage } from 'ai'
 import { useLocalStorage, useSessionStorage } from '@vueuse/core'
 import { AGENT_METRICS_KEY, type AgentMode, type ViewMode } from '~~/shared/agent'
 
@@ -112,6 +112,16 @@ export const useAgentChatStore = defineStore('agentChat', () => {
   const isStreaming = computed(() =>
     statusClassical.value === 'streaming' || statusCode.value === 'streaming'
   )
+  // Composer status: in 'both' mode, surface the most active state across threads.
+  const composerStatus = computed<ChatStatus>(() => {
+    if (viewMode.value !== 'both') return status.value
+    const a = statusClassical.value
+    const b = statusCode.value
+    if (a === 'streaming' || b === 'streaming') return 'streaming'
+    if (a === 'submitted' || b === 'submitted') return 'submitted'
+    if (a === 'error' || b === 'error') return 'error'
+    return 'ready'
+  })
   const hasAnyMessages = computed(() => messagesClassical.value.length > 0 || messagesCode.value.length > 0)
   const canClear = computed(() =>
     viewMode.value === 'both' ? hasAnyMessages.value : messages.value.length > 0
@@ -201,6 +211,7 @@ export const useAgentChatStore = defineStore('agentChat', () => {
   return {
     messages,
     status,
+    composerStatus,
     isStreaming,
     canClear,
     rateLimited,
